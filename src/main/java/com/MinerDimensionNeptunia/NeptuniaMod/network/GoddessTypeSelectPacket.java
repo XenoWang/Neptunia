@@ -45,19 +45,19 @@ public class GoddessTypeSelectPacket {
             }
 
             player.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
-                boolean hadAbility = cap.getAbility();
-
-                cap.setGoddessType(msg.selectedType);
-
-                if (!hadAbility) {
-                    cap.setAbility(true);
-                    cap.setTransformStartTime(0);
-                    consumeGoddessDisk(player);
-                    player.sendSystemMessage(Component.literal("你获得了女神化的能力，并选择了 " + msg.selectedType.name()));
-                } else {
-                    consumeGoddessDisk(player);
-                    player.sendSystemMessage(Component.literal("更换女神为 " + msg.selectedType.name()));
+                // ⭐ 新增：如果已拥有能力，拒绝处理（防止作弊/重复使用）
+                if (cap.getAbility()) {
+                    player.sendSystemMessage(Component.literal("你已经拥有女神化的能力了！"));
+                    System.out.println("🛑 [服务端] 玩家 " + player.getName().getString() +
+                            " 已拥有能力，拒绝选择女神请求");
+                    return;
                 }
+
+                // 未拥有能力，正常处理
+                cap.setAbility(true);
+                cap.setGoddessType(msg.selectedType);
+                cap.setTransformStartTime(0);
+                consumeGoddessDisk(player);
 
                 // 更新服务端缓存
                 Neptunia.updatePlayerCache(
@@ -76,8 +76,10 @@ public class GoddessTypeSelectPacket {
                                 msg.selectedType
                         )
                 );
+
+                player.sendSystemMessage(Component.literal("你获得了女神化的能力，并选择了 " + msg.selectedType.name()));
                 System.out.println("✅ [服务端] 玩家 " + player.getName().getString() +
-                        " 选择/更换女神类型: " + msg.selectedType + "，缓存已更新");
+                        " 选择女神类型: " + msg.selectedType + "，物品已消耗");
             });
         });
         context.setPacketHandled(true);

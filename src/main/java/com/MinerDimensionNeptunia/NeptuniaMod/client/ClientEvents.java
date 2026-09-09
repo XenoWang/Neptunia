@@ -102,8 +102,14 @@ public class ClientEvents {
     }
 
     private static int getRemainingSeconds() {
-        if (cachedTransformStartTime <= 0) return 0;
+        if (cachedTransformStartTime <= 0)
+            return 0;
         long elapsed = (System.currentTimeMillis() - cachedTransformStartTime) / 1000;
         return Math.max(0, TRANSFORM_DURATION - (int) elapsed);
+    }
+
+    // 在 ClientEvents 类中添加：
+    public static boolean hasGoddessAbility() {
+        return cachedGoddessAbility;
     }
 }

@@ -11,16 +11,15 @@ import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessAbilitySyncPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessTypeSelectPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
-import com.mojang.brigadier.CommandDispatcher;
+import com.MinerDimensionNeptunia.NeptuniaMod.command.GoddessCommand;
 import com.mojang.logging.LogUtils;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraftforge.client.ConfigScreenHandler;
+import com.MinerDimensionNeptunia.NeptuniaMod.client.gui.ModConfigScreen;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -51,20 +50,17 @@ public class Neptunia {
         private static final String PROTOCOL_VERSION = "1";
         private static final int TRANSFORM_DURATION = 180;
 
-        // ===== 网络通道 =====
         public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
                         new ResourceLocation(MODID, "main"),
                         () -> PROTOCOL_VERSION,
                         PROTOCOL_VERSION::equals,
                         PROTOCOL_VERSION::equals);
 
-        // ===== 物品注册 =====
         public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
 
         public static final RegistryObject<Item> GODDESS_DISK = ITEMS.register("goddess_disk",
                         () -> new GoddessDiskItem(new Item.Properties().stacksTo(64)));
 
-        // ===== 服务端数据缓存 =====
         private static final Map<UUID, SavedPlayerData> PLAYER_DATA_CACHE = new ConcurrentHashMap<>();
 
         private static class SavedPlayerData {
@@ -79,7 +75,6 @@ public class Neptunia {
                 }
         }
 
-        // ===== 缓存管理方法 =====
         public static void updatePlayerCache(UUID uuid, boolean ability, GoddessType type, long startTime) {
                 if (!ability && type == GoddessType.NONE && startTime == 0) {
                         PLAYER_DATA_CACHE.remove(uuid);
@@ -107,16 +102,29 @@ public class Neptunia {
                                 GoddessTypeSelectPacket::decode,
                                 GoddessTypeSelectPacket::handle);
 
-                // ---- 2. 注册配置（改为 COMMON 类型，使按钮可点击） ----
+                // ---- 2. 注册客户端配置 ----
                 try {
-                        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, GoddessConfig.CLIENT_SPEC);
-                        System.out.println("✅ [Neptunia] 配置已注册为 COMMON 类型！");
+                        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, GoddessConfig.CLIENT_SPEC);
+                        System.out.println("✅ [Neptunia] 客户端配置已注册！");
                 } catch (Exception e) {
                         System.err.println("❌ [Neptunia] 配置注册失败: " + e.getMessage());
                         e.printStackTrace();
                 }
 
-                // ---- 3. 注册物品和事件 ----
+                // ---- 3. ⭐ 注册配置屏幕工厂（让配置按钮可点击） ----
+                try {
+                        ModLoadingContext.get().registerExtensionPoint(
+                                        ConfigScreenHandler.ConfigScreenFactory.class,
+                                        () -> new ConfigScreenHandler.ConfigScreenFactory(
+                                                        (client, parent) -> new ModConfigScreen(parent) // 使用自定义配置屏幕
+                                        ));
+                        System.out.println("✅ [Neptunia] 配置屏幕工厂已注册！");
+                } catch (Exception e) {
+                        System.err.println("❌ [Neptunia] 配置屏幕工厂注册失败: " + e.getMessage());
+                        e.printStackTrace();
+                }
+
+                // ---- 4. 注册物品和事件 ----
                 IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
                 ITEMS.register(modEventBus);
@@ -132,12 +140,10 @@ public class Neptunia {
                 LOGGER.info("Neptunia Mod 初始化完成！");
         }
 
-        // ===== 按键注册 =====
         private void registerKeyMappings(RegisterKeyMappingsEvent event) {
                 event.register(KeyBindings.transformKey);
         }
 
-        // ===== Capability 附加 =====
         private void attachCapabilities(AttachCapabilitiesEvent<Entity> event) {
                 if (event.getObject() instanceof Player) {
                         event.addCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY_LOCATION,
@@ -146,7 +152,6 @@ public class Neptunia {
                 }
         }
 
-        // ===== 玩家登录：从缓存恢复并同步 =====
         private void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
                 if (event.getEntity() instanceof ServerPlayer serverPlayer) {
                         UUID uuid = serverPlayer.getUUID();
@@ -188,7 +193,6 @@ public class Neptunia {
                 }
         }
 
-        // ===== 玩家死亡：保存数据到缓存 =====
         private void onPlayerDeath(LivingDeathEvent event) {
                 if (event.getEntity() instanceof ServerPlayer player) {
                         UUID uuid = player.getUUID();
@@ -206,7 +210,6 @@ public class Neptunia {
                 }
         }
 
-        // ===== 玩家复活：从缓存恢复数据 =====
         private void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
                 if (!(event.getEntity() instanceof ServerPlayer player))
                         return;
@@ -266,7 +269,6 @@ public class Neptunia {
                 });
         }
 
-        // ===== 玩家登出：清理缓存 =====
         private void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
                 if (event.getEntity() instanceof ServerPlayer player) {
                         UUID uuid = player.getUUID();
@@ -276,65 +278,7 @@ public class Neptunia {
                 }
         }
 
-        // ===== 命令注册 =====
         private void registerCommands(RegisterCommandsEvent event) {
-                CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-
-                dispatcher.register(
-                                Commands.literal("neptunia")
-                                                .requires(source -> source.hasPermission(2))
-                                                .then(Commands.literal("goddess")
-                                                                .then(Commands.literal("clear")
-                                                                                .executes(context -> {
-                                                                                        CommandSourceStack source = context
-                                                                                                        .getSource();
-                                                                                        if (source.getEntity() instanceof ServerPlayer player) {
-                                                                                                UUID uuid = player
-                                                                                                                .getUUID();
-                                                                                                player.getCapability(
-                                                                                                                GoddessCapabilityProvider.GODDESS_CAPABILITY)
-                                                                                                                .ifPresent(cap -> {
-                                                                                                                        if (cap.getTransformStartTime() > 0) {
-                                                                                                                                Goddess goddess = GoddessRegistry
-                                                                                                                                                .getInstance()
-                                                                                                                                                .getGoddess(cap.getGoddessType());
-                                                                                                                                if (goddess != null) {
-                                                                                                                                        TransformRequestPacket
-                                                                                                                                                        .applyGoddessBoost(
-                                                                                                                                                                        player,
-                                                                                                                                                                        goddess,
-                                                                                                                                                                        false);
-                                                                                                                                }
-                                                                                                                        }
-                                                                                                                        cap.setAbility(false);
-                                                                                                                        cap.setTransformStartTime(
-                                                                                                                                        0);
-                                                                                                                        cap.setGoddessType(
-                                                                                                                                        GoddessType.NONE);
-                                                                                                                        PLAYER_DATA_CACHE
-                                                                                                                                        .remove(uuid);
-                                                                                                                        CHANNEL.send(
-                                                                                                                                        PacketDistributor.PLAYER
-                                                                                                                                                        .with(() -> player),
-                                                                                                                                        new GoddessAbilitySyncPacket(
-                                                                                                                                                        false,
-                                                                                                                                                        0,
-                                                                                                                                                        GoddessType.NONE));
-                                                                                                                        source.sendSuccess(
-                                                                                                                                        () -> Component.literal(
-                                                                                                                                                        "§a已清除女神化能力和变身状态！"),
-                                                                                                                                        true);
-                                                                                                                        System.out.println(
-                                                                                                                                        "🧹 [服务端] 玩家 " +
-                                                                                                                                                        player.getName().getString()
-                                                                                                                                                        + " 的完整状态已被清除");
-                                                                                                                });
-                                                                                        } else {
-                                                                                                source.sendFailure(
-                                                                                                                Component.literal(
-                                                                                                                                "§c该命令只能由玩家执行。"));
-                                                                                        }
-                                                                                        return 1;
-                                                                                }))));
+                GoddessCommand.register(event.getDispatcher());
         }
 }
