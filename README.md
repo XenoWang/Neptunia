@@ -285,4 +285,4 @@ gradlew.bat build        # Windows
 
 ## License / 许可证
 
-All Rights Reserved © MReimu
+All Rights Reserved © MReimu(XenoWang)
