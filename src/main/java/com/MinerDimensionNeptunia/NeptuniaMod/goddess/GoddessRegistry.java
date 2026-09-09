@@ -37,15 +37,10 @@ public class GoddessRegistry {
         // ============================================================
         // 🆕 在这里添加更多女神，例如：
         // ============================================================
-        // Goddess strength = new Goddess(GoddessType.STRENGTH, "力量女神")
+        // Goddess PurpleHeart = new Goddess(GoddessType.STRENGTH, "紫色之心")
         //         .addAttributeBoost(Attributes.ATTACK_DAMAGE, 3.0)
         //         .addAttributeBoost(Attributes.ARMOR, 1.5);
-        // registerGoddess(strength);
-        //
-        // Goddess speed = new Goddess(GoddessType.SPEED, "速度女神")
-        //         .addAttributeBoost(Attributes.MOVEMENT_SPEED, 3.0)
-        //         .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.2);
-        // registerGoddess(speed);
+        // registerGoddess(PurpleHeart);
         // ============================================================
     }
 
