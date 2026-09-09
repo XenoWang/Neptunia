@@ -1,11 +1,11 @@
 # Miner Dimension Neptunia / 矿工次元海王星模组
 
-⚠️ DEVELOPER README — MOD USERS: DOWNLOAD THE .jar FROM RELEASES
-❌DO NOT DOWNLOAD THE ZIP SOURCE CODE❌
-⚠️ 此处为开发者 README.md —— 游玩本模组请直接前往 Release 下载 .jar 文件
+⚠️ DEVELOPER README — MOD USERS: DOWNLOAD THE .jar FROM RELEASES  
+❌DO NOT DOWNLOAD THE ZIP SOURCE CODE❌  
+⚠️ 此处为开发者 README.md —— 游玩本模组请直接前往 Release 下载 .jar 文件  
 ❌不要下载 ZIP 源代码❌
 
-A Minecraft mod based on *Hyperdimension Neptunia* （超次元游戏海王星）, featuring the **Goddess Transformation （女神化）** system — transform into different goddesses and gain their unique powers.
+A Minecraft mod based on *Hyperdimension Neptunia* （超次元游戏海王星）, featuring the **Goddess Transformation （女神化）** system — transform into different goddesses and gain their unique powers.  
 基于《超次元游戏海王星》的 Minecraft 模组，核心玩法为**女神化系统**：变身成不同女神形态，获得对应能力。
 
 | Item 项目 | Version 版本 |
@@ -20,8 +20,10 @@ A Minecraft mod based on *Hyperdimension Neptunia* （超次元游戏海王星�
 
 - [Project Structure 项目结构](#project-structure-项目结构)
 - [Core Systems 核心系统概览](#core-systems-核心系统概览)
+- [Commands 命令](#commands-命令)
 - [Adding a New Goddess 添加新女神（3 步）](#adding-a-new-goddess-添加新女神3-步)
 - [GUI / UI File Guide (for UI developers) GUI 文件速查](#gui--ui-file-guide-for-ui-developers-gui-文件速查)
+- [Configuration System 配置系统](#configuration-system-配置系统)
 - [Network Packets 网络包说明](#network-packets-网络包说明)
 - [Capability System 能力系统](#capability-system-能力系统)
 - [Build & Run 构建与运行](#build--run-构建与运行)
@@ -32,38 +34,54 @@ A Minecraft mod based on *Hyperdimension Neptunia* （超次元游戏海王星�
 
 ```
 src/main/java/com/MinerDimensionNeptunia/NeptuniaMod/
-├── capability/                  # Goddess capability system 女神化能力系统
-│   ├── GoddessCapability.java               # Capability interface 能力接口
+├── Neptunia.java                           # Main mod class 主类
+│
+├── capability/                             # Goddess capability system 女神化能力系统
+│   ├── GoddessCapability.java              # Capability interface 能力接口
 │   ├── GoddessCapabilityImplementation.java # Implementation (data storage / NBT) 实现（数据存储/读写）
-│   └── GoddessCapabilityProvider.java       # Provider (attach & serialize) 提供者（附加到玩家、序列化）
+│   └── GoddessCapabilityProvider.java      # Provider (attach & serialize) 提供者（附加到玩家、序列化）
+│
 ├── client/
-│   ├── gui/                                 # ★ UI related, see GUI guide below ★ UI 相关，见下文速查表
-│   │   ├── GoddessHudRenderer.java          # In-game HUD (transformation bar) 游戏内女神化条渲染
-│   │   ├── GoddessSelectionScreen.java      # Goddess selection screen 女神选择界面
-│   │   └── KeyBindings.java                 # Key bindings 按键绑定注册
-│   └── config/
-│       ├── GoddessColorConfig.java          # Reads goddess_colors.json 读取颜色配置
-│       └── GoddessConfig.java               # General client config 客户端常规配置
-├── goddess/                                 # ★ Goddess data (standalone module) ★ 女神化数据（已独立拆分）
-│   ├── Goddess.java                         # Data class for a single goddess 单个女神数据类
-│   └── GoddessRegistry.java                 # Goddess registry 女神注册表
-├── item/                                    # Items (e.g. goddess disks) 物品
-├── network/                                 # Network sync packets 网络同步包
-│   ├── GoddessAbilitySyncPacket.java        # Sync abilities to client 同步能力到客户端
-│   ├── GoddessTypeSelectPacket.java         # Select goddess type 选择女神类型
-│   └── TransformRequestPacket.java          # Request transformation 请求变身
+│   ├── ClientEvents.java                   # Client event handler 客户端事件处理
+│   ├── KeyBindings.java                    # Key bindings 按键绑定注册
+│   ├── gui/
+│   │   ├── GoddessHudRenderer.java         # ★ In-game HUD (transformation bar) ★ 游戏内女神化条渲染
+│   │   ├── GoddessSelectionScreen.java     # Goddess selection screen 女神选择界面
+│   │   ├── ModConfigScreen.java            # ★ Main config screen (module list) ★ 配置主界面（模块列表）
+│   │   └── config/                         # ★ Config modules ★ 配置模块
+│   │       ├── ConfigModule.java           # Module interface 模块接口
+│   │       ├── HudConfigModule.java        # HUD config sub-screen HUD 配置子界面
+│   │       └── Modules.java                # ★ Module registry (add new modules here) ★ 模块注册中心
+│   └── config/                             # Config loader (non-GUI) 配置加载器（非界面）
+│       ├── GoddessColorConfig.java         # Reads goddess_colors.json 读取颜色配置
+│       └── GoddessConfig.java              # ForgeConfigSpec definition 配置定义
+│
+├── command/                                # ★ Commands (standalone) ★ 命令（已独立拆分）
+│   └── GoddessCommand.java                 # /neptunia goddess commands 女神化命令
+│
+├── goddess/                                # ★ Goddess data (standalone module) ★ 女神化数据（已独立拆分）
+│   ├── Goddess.java                        # Data class for a single goddess 单个女神数据类
+│   └── GoddessRegistry.java                # Goddess registry 女神注册表
+│
+├── item/                                   # Items (e.g. goddess disks) 物品
+│   └── GoddessDiskItem.java
+│
+├── network/                                # Network sync packets 网络同步包
+│   ├── GoddessAbilitySyncPacket.java       # Sync abilities to client 同步能力到客户端
+│   ├── GoddessTypeSelectPacket.java        # Select goddess type 选择女神类型
+│   └── TransformRequestPacket.java         # Request transformation 请求变身
+│
 └── util/
-    ├── GoddessType.java                     # ★ Goddess type enum ★ 女神类别枚举
-    └── Neptunia.java
+    └── GoddessType.java                    # ★ Goddess type enum ★ 女神类别枚举
 
 src/main/resources/assets/miner_dimension_neptunia/
 ├── config/
-│   └── goddess_colors.json                  # ★ Transformation bar colors ★ 女神化条颜色配置
+│   └── goddess_colors.json                 # ★ Transformation bar colors ★ 女神化条颜色配置
 ├── lang/
-│   └── en_us.json                           # Language file 语言文件
+│   └── en_us.json                          # Language file 语言文件
 ├── models/item/
-│   └── goddess_disk.json                    # Goddess disk model 女神碟片模型
-pack.mcmeta
+│   └── goddess_disk.json                   # Goddess disk model 女神碟片模型
+└── pack.mcmeta
 ```
 
 ---
@@ -80,15 +98,30 @@ Key press 玩家按键 (KeyBindings)
   → Client GoddessHudRenderer draws the bar using GoddessColorConfig 客户端渲染女神化条
 ```
 
-> **Note 注意**: The goddess system is now a standalone module. Adding a new goddess requires
-> **zero changes** to capability / network / gui code — just follow the 3 steps below.
+> **Note 注意**: The goddess system is now a standalone module. Adding a new goddess requires  
+> **zero changes** to capability / network / gui code — just follow the 3 steps below.  
 > 女神化系统已独立拆分，新增女神**不需要**改动 capability / network / gui 代码，只需按下面 3 步操作。
+
+---
+
+## Commands / 命令
+
+All commands require **OP level 2** (`/op <player>`).
+
+| Command 命令 | Description 说明 |
+| --- | --- |
+| `/neptunia goddess clear` | Clear your own goddess ability 清除自己的女神化能力 |
+| `/neptunia goddess clear <player>` | Clear a target player's goddess ability 清除指定玩家的女神化能力 |
+| `/neptunia goddess add <player> <type>` | Add goddess ability to a target player (type: `prototype`, etc.) 为指定玩家添加女神化能力 |
+
+> **Auto-completion**: Tab works for player names and goddess types (`prototype`, etc.).  
+> **自动补全**：按 Tab 自动补全玩家名和女神类型（如 `prototype`）。
 
 ---
 
 ## Adding a New Goddess / 添加新女神（3 步）
 
-Adding a new goddess only takes **3 files**, in order:
+Adding a new goddess only takes **3 files**, in order:  
 新增一位女神只需按顺序修改 **3 个文件**：
 
 ### Step 1 / 第 1 步：Add the enum entry — `util/GoddessType.java`
@@ -96,26 +129,18 @@ Adding a new goddess only takes **3 files**, in order:
 ```java
 public enum GoddessType {
     NONE,
-    PROTOTYPE;
+    PROTOTYPE;   // 已有的
     // 这里添加新女神名称，后续步骤名称需要保持统一
     // Add new goddess names here. Keep the name consistent in the following steps!
-    // ...
 }
 ```
 
-> ⚠️ The enum constant name (e.g. `PROTOTYPE`) is serialized to the config key by converting to
-> lowercase (e.g. `prototype`). This key must match **Step 2's GoddessType** and **Step 3's JSON key**.
-> 枚举名（如 `PROTOTYPE`）会被转换为小写作为配置 key（如 `prototype`），必须与第 2 步的 GoddessType、
-> 第 3 步的 JSON key 完全对应。
-
 ### Step 2 / 第 2 步：Register the data — `goddess/GoddessRegistry.java`
 
-Add the new goddess inside `registerDefaultGoddesses()`, following the existing pattern:
-在 `registerDefaultGoddesses()` 方法中仿照现有写法添加：
+Add the new goddess inside `registerDefaultGoddesses()`:
 
 ```java
 private void registerDefaultGoddesses() {
-    // 原型女神（平衡型）
     Goddess prototype = new Goddess(GoddessType.PROTOTYPE, "Prototype Goddess")
             .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.0)
             .addAttributeBoost(Attributes.MOVEMENT_SPEED, 2.0)
@@ -124,26 +149,23 @@ private void registerDefaultGoddesses() {
     registerGoddess(prototype);
 
     // ============================================================
-    // 🆕 在这里添加更多女神，例如：
+    // 🆕 在这里添加更多女神
+    // 🆕 Add more goddesses here
     // ============================================================
-    // Goddess PurpleHeart = new Goddess(GoddessType.STRENGTH, "紫色之心")
+    // Goddess purpleHeart = new Goddess(GoddessType.PURPLE_HEART, "紫色之心")
     //         .addAttributeBoost(Attributes.ATTACK_DAMAGE, 3.0)
     //         .addAttributeBoost(Attributes.ARMOR, 1.5);
-    // registerGoddess(PurpleHeart);
+    // registerGoddess(purpleHeart);
     // ============================================================
 }
 ```
 
-- `new Goddess(GoddessType, "Display Name")` creates the goddess; chain `.addAttributeBoost(...)`
-  to attach attribute modifiers （攻击、移速、护甲、韧性 etc.).
-  用 `new Goddess(GoddessType, "显示名")` 创建女神，链式调用 `.addAttributeBoost(...)` 添加属性加成。
+- `new Goddess(GoddessType, "Display Name")` creates the goddess; chain `.addAttributeBoost(...)` to attach attribute modifiers (attack, speed, armor, toughness, etc.).
 - Always end with `registerGoddess(goddess)` — an unregistered goddess will not work.
-  最后必须调用 `registerGoddess(goddess)` 注册，否则不生效。
 
 ### Step 3 / 第 3 步：Bar colors — `resources/assets/miner_dimension_neptunia/config/goddess_colors.json`
 
 Add a color config block for the new goddess. The JSON key is the enum name in **lowercase**:
-为新女神添加颜色配置块，JSON key 为枚举名的**小写形式**：
 
 ```json
 {
@@ -154,7 +176,6 @@ Add a color config block for the new goddess. The JSON key is the enum name in *
         "text": "#FFFFFF",
         "background": "#1E1B4B"
     }
-
     // 🆕 在这里添加更多女神的颜色配置
     // 🆕 Add more goddess color configs here
 }
@@ -169,50 +190,55 @@ Add a color config block for the new goddess. The JSON key is the enum name in *
 | `background` | Bar background 背景色 |
 
 - Loaded at startup by `client/config/GoddessColorConfig.java`, consumed by `GoddessHudRenderer`.
-  该文件由 `GoddessColorConfig.java` 启动时读取，供 HUD 渲染使用。
-- All values are HEX colors (`#RRGGBB`). 所有颜色为十六进制（`#RRGGBB`）。
 - After editing, reload resources with **F3+T** (no game restart needed).
-  修改后按 **F3+T** 热重载资源即可生效，无需重启游戏。
-
-### Extra / 补充：Language file 语言文件（可选但推荐）
-
-Add the display name in `resources/assets/miner_dimension_neptunia/lang/en_us.json`:
-在语言文件中添加显示名：
-
-```json
-{
-  "goddess.miner_dimension_neptunia.prototype": "Prototype Goddess"
-}
-```
 
 ---
 
 ## GUI / UI File Guide (for UI developers) / GUI 文件速查（给做 UI 的人）
 
-All UI code lives in `client/gui/`, with configs in `client/config/`:
-所有 UI 代码在 `client/gui/`，配套配置在 `client/config/`：
+All UI code lives in `client/gui/`:
 
 | File 文件 | Responsibility 职责 |
 | --- | --- |
 | `client/gui/GoddessHudRenderer.java` | In-game HUD: transformation bar position, size, animation, text 女神化条的位置、尺寸、动画、文字渲染 |
 | `client/gui/GoddessSelectionScreen.java` | Goddess selection screen: layout, buttons, selection state 女神选择界面布局、按钮、选中态 |
-| `client/gui/KeyBindings.java` | Key bindings (open screen / transform) 按键注册（打开界面、变身） |
-| `client/config/GoddessColorConfig.java` | Single entry point for bar colors 读取 goddess_colors.json，UI 取颜色的唯一入口 |
-| `client/config/GoddessConfig.java` | General client settings (HUD toggle, offsets…) 客户端常规配置 |
+| `client/gui/ModConfigScreen.java` | ★ Main config screen: displays a list of config modules 配置主界面：显示配置模块列表 |
+| `client/gui/config/ConfigModule.java` | ★ Interface for config modules 配置模块接口 |
+| `client/gui/config/HudConfigModule.java` | ★ HUD config sub-screen (sliders for position & scale) HUD 配置子界面（位置/缩放滑块） |
+| `client/gui/config/Modules.java` | ★ Module registry (add new modules here) 模块注册中心 |
 
 ### Quick lookup / 常见需求速查
 
 | What you want to change 你想改什么 | Where to go 目标文件 |
 | --- | --- |
-| Bar colors 女神化条颜色 | `config/goddess_colors.json` (no code change 不用改代码) |
+| Bar colors 女神化条颜色 | `resources/.../config/goddess_colors.json` (no code change) |
 | Bar position / size / style 位置 / 大小 / 样式 | `client/gui/GoddessHudRenderer.java` |
 | Selection screen layout 选择界面布局 | `client/gui/GoddessSelectionScreen.java` |
-| Add / change keys 新增 / 修改按键 | `client/gui/KeyBindings.java` + `lang/en_us.json` |
-| HUD toggle / client settings 显隐 / 设置项 | `client/config/GoddessConfig.java` |
+| Add / change keys 新增 / 修改按键 | `client/KeyBindings.java` + `lang/en_us.json` |
+| HUD offset / scale config 偏移 / 缩放配置 | `client/gui/config/HudConfigModule.java` + `GoddessConfig.java` |
+| Add a new config module 新增配置模块 | ① Create module class → ② Register in `Modules.java` |
 
-> **Convention 约定**: Never hardcode colors in UI code — always read from `GoddessColorConfig`.
+> **Convention 约定**: Never hardcode colors in UI code — always read from `GoddessColorConfig`.  
 > Never hardcode display text — always use lang files.
-> UI 代码中**不要**硬编码颜色（一律走 `GoddessColorConfig`）和显示文字（一律走 lang 文件）。
+
+---
+
+## Configuration System / 配置系统
+
+The configuration system is **modular**:
+
+| Module 模块 | File 文件 | Purpose 作用 |
+| --- | --- | --- |
+| **HUD Module** | `client/gui/config/HudConfigModule.java` | X/Y offset, scale 位置/缩放 |
+| **Future Modules** | Add to `Modules.java` | Combat, audio, graphics, etc. 战斗、音效、画面等 |
+
+### Config entries (currently available) / 当前可用的配置项
+
+| Entry 配置项 | Range 范围 | Default 默认 | Description 说明 |
+| --- | --- | --- | --- |
+| `hud.offsetX` | 0 ~ 500 | 20 | Horizontal offset from right edge 从右侧边缘的水平偏移 |
+| `hud.offsetY` | 0 ~ 500 | 70 | Vertical offset from bottom edge 从底部边缘的垂直偏移 |
+| `hud.scale` | 0.5 ~ 2.0 | 1.0 | Scale factor for HUD bar HUD 条缩放比例 |
 
 ---
 
@@ -225,7 +251,6 @@ All UI code lives in `client/gui/`, with configs in `client/config/`:
 | `GoddessAbilitySyncPacket` | S → C | Sync abilities to client (for HUD) 同步能力供 HUD 显示 |
 
 Adding a goddess requires **no new packets** — `GoddessType` syncs through the existing ones.
-新增女神**不需要**新增网络包，GoddessType 会随现有包同步。
 
 ---
 
@@ -233,12 +258,11 @@ Adding a goddess requires **no new packets** — `GoddessType` syncs through the
 
 `capability/` attaches transformation data to the player:
 
-- `GoddessCapability` — interface: get/set current goddess type 接口：当前女神类型的读写
-- `GoddessCapabilityImplementation` — data storage & NBT read/write 数据存储与 NBT 读写
-- `GoddessCapabilityProvider` — attaches capability to `Player`, handles (de)serialization 附加到玩家、序列化
+- `GoddessCapability` — interface: get/set current goddess type
+- `GoddessCapabilityImplementation` — data storage & NBT read/write
+- `GoddessCapabilityProvider` — attaches capability to `Player`, handles (de)serialization
 
-The **server holds the authoritative state**; the client refreshes via sync packets.
-**服务端数据为准**，客户端靠同步包刷新。
+**Data is synced with client** after each state change to keep HUD up-to-date.
 
 ---
 
@@ -253,6 +277,12 @@ gradlew.bat build        # Windows
 ./gradlew runClient
 ```
 
-Tips 提示：
+**Tips 提示**:
 - **F3+T** reloads resources (lang, JSON configs, models) without restarting.
-  按 **F3+T** 可热重载语言文件、JSON 配置和模型，无需重启。
+- Configuration changes are saved via the in-game config screen and persisted to `.toml` files in `run/config/`.
+
+---
+
+## License / 许可证
+
+All Rights Reserved © MReimu
