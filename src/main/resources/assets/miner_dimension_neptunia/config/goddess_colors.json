@@ -1,0 +1,9 @@
+{
+    "prototype": {
+        "main": "#8B5CF6",
+        "secondary": "#A78BFA",
+        "border": "#6D28D9",
+        "text": "#FFFFFF",
+        "background": "#1E1B4B"
+    }
+}
