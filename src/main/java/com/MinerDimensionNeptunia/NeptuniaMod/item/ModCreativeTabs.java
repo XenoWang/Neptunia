@@ -21,7 +21,15 @@ public class ModCreativeTabs {
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.miner_dimension_neptunia"))
                     .icon(() -> new ItemStack(Neptunia.GODDESS_DISK.get()))
-                    .displayItems((parameters, output) -> output.accept(Neptunia.GODDESS_DISK.get()))
+                    .displayItems((parameters, output) -> {
+                        output.accept(Neptunia.GODDESS_DISK.get());
+                        // 女神默认武器
+                        output.accept(Neptunia.PROTOTYPE_RAPIER.get());
+                        output.accept(Neptunia.PURPLE_HEART_KATANA.get());
+                        output.accept(Neptunia.BLACK_HEART_LONGSWORD.get());
+                        output.accept(Neptunia.WHITE_HEART_HAMMER.get());
+                        output.accept(Neptunia.GREEN_HEART_SPEAR.get());
+                    })
                     .build());
 
     public static void register(IEventBus modEventBus) {

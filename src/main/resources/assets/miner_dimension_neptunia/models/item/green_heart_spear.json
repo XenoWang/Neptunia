@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "miner_dimension_neptunia:item/green_heart_spear"
+  }
+}

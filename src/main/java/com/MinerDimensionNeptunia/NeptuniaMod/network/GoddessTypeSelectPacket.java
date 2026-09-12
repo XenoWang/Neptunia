@@ -2,12 +2,14 @@ package com.MinerDimensionNeptunia.NeptuniaMod.network;
 
 import com.MinerDimensionNeptunia.NeptuniaMod.Neptunia;
 import com.MinerDimensionNeptunia.NeptuniaMod.capability.GoddessCapabilityProvider;
+import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
-import com.MinerDimensionNeptunia.NeptuniaMod.item.GoddessDiskItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessDiskItem;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
@@ -34,7 +36,6 @@ public class GoddessTypeSelectPacket {
         context.enqueueWork(() -> {
             ServerPlayer player = context.getSender();
             if (player == null) {
-                System.out.println("❌ [服务端] 选择女神类型失败：sender 为 null");
                 return;
             }
 
@@ -48,8 +49,6 @@ public class GoddessTypeSelectPacket {
                 // ⭐ 新增：如果已拥有能力，拒绝处理（防止作弊/重复使用）
                 if (cap.getAbility()) {
                     player.sendSystemMessage(Component.literal("你已经拥有女神化的能力了！"));
-                    System.out.println("🛑 [服务端] 玩家 " + player.getName().getString() +
-                            " 已拥有能力，拒绝选择女神请求");
                     return;
                 }
 
@@ -58,6 +57,12 @@ public class GoddessTypeSelectPacket {
                 cap.setGoddessType(msg.selectedType);
                 cap.setTransformStartTime(0);
                 consumeGoddessDisk(player);
+
+                // 给予该女神的默认武器
+                Goddess goddess = GoddessRegistry.getInstance().getGoddess(msg.selectedType);
+                if (goddess != null) {
+                    giveStarterWeapon(player, goddess);
+                }
 
                 // 更新服务端缓存
                 Neptunia.updatePlayerCache(
@@ -78,8 +83,6 @@ public class GoddessTypeSelectPacket {
                 );
 
                 player.sendSystemMessage(Component.literal("你获得了女神化的能力，并选择了 " + msg.selectedType.name()));
-                System.out.println("✅ [服务端] 玩家 " + player.getName().getString() +
-                        " 选择女神类型: " + msg.selectedType + "，物品已消耗");
             });
         });
         context.setPacketHandled(true);
@@ -96,6 +99,25 @@ public class GoddessTypeSelectPacket {
                 return;
             }
         }
-        System.out.println("⚠️ [服务端] 未找到 goddess_disk 物品，无法消耗");
+    }
+
+    /**
+     * 给予该女神的默认武器：已拥有同种武器则不重复给予；
+     * 背包已满时掉落在玩家脚下。
+     */
+    private static void giveStarterWeapon(ServerPlayer player, Goddess goddess) {
+        Item weapon = goddess.getStarterWeapon();
+        if (weapon == null) {
+            return;
+        }
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            if (player.getInventory().getItem(i).is(weapon)) {
+                return; // 已拥有
+            }
+        }
+        ItemStack stack = new ItemStack(weapon);
+        if (!player.getInventory().add(stack)) {
+            player.drop(stack, false);
+        }
     }
 }

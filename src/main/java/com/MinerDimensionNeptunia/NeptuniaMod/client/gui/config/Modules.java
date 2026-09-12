@@ -20,7 +20,6 @@ public class Modules {
 
     public static void register(ConfigModule module) {
         MODULES.add(module);
-        System.out.println("📝 [Modules] 已注册配置模块: " + module.getDisplayName().getString());
     }
 
     public static List<ConfigModule> getModules() {

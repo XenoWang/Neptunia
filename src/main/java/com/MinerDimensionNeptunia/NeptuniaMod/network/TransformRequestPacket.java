@@ -43,7 +43,6 @@ public class TransformRequestPacket {
         context.enqueueWork(() -> {
             ServerPlayer player = context.getSender();
             if (player == null) {
-                System.out.println("❌ [服务端] 变身请求处理失败：sender 为 null");
                 return;
             }
 
@@ -76,7 +75,7 @@ public class TransformRequestPacket {
                     long startTime = System.currentTimeMillis();
                     cap.setTransformStartTime(startTime);
                     System.out.println("✅ [服务端] 玩家 " + player.getName().getString() +
-                            " 开始变身，女神: " + goddess.getDisplayName() + "，时间: " + startTime);
+                            " 变身，女神: " + goddess.getDisplayName() + "，时间: " + startTime);
 
                     // 应用属性加成
                     applyGoddessBoost(player, goddess, true);

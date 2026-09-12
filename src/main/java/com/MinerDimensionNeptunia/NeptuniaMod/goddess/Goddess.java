@@ -5,10 +5,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Item;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public class Goddess {
     private final GoddessType id;
@@ -25,6 +27,9 @@ public class Goddess {
 
     // 开发者专属：仅开发者名单内的玩家在选择界面可见
     private boolean devOnly = false;
+
+    // 默认武器：使用女神磁盘选定该女神后自动获得（用 Supplier 延迟取值，避免注册顺序问题）
+    private Supplier<? extends Item> starterWeapon;
 
     public Goddess(GoddessType id, String displayName) {
         this.id = id;
@@ -58,6 +63,12 @@ public class Goddess {
         return this;
     }
 
+    /** 设置默认武器：玩家用女神磁盘选定该女神后会自动获得（传注册项，延迟取值） */
+    public Goddess setStarterWeapon(Supplier<? extends Item> weapon) {
+        this.starterWeapon = weapon;
+        return this;
+    }
+
     public String getColorKey() {
         return colorKey;
     }
@@ -74,6 +85,9 @@ public class Goddess {
     public int getArtTextureWidth() { return artTextureWidth; }
     public int getArtTextureHeight() { return artTextureHeight; }
     public boolean isDevOnly() { return devOnly; }
+
+    /** 获取默认武器，未设置则返回 null（仅在物品注册完成后调用） */
+    public Item getStarterWeapon() { return starterWeapon == null ? null : starterWeapon.get(); }
     public Map<Attribute, Double> getAttributeMultipliers() { return attributeMultipliers; }
     public UUID getBoostUUID() { return boostUUID; }
 

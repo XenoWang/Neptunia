@@ -28,19 +28,16 @@ public class ClientEvents {
 
     public static void setGoddessAbility(boolean value) {
         cachedGoddessAbility = value;
-        System.out.println("💾 [客户端] 能力缓存更新为: " + value);
     }
 
     public static void setTransformStartTime(long time) {
         cachedTransformStartTime = time;
         isLocallyTransformed = (time > 0);
         GoddessHudRenderer.updateState(cachedGoddessType, time);
-        System.out.println("💾 [客户端] 变身时间缓存更新为: " + time + "，状态: " + isLocallyTransformed);
     }
 
     public static void setGoddessType(GoddessType type) {
         cachedGoddessType = type;
-        System.out.println("💾 [客户端] 女神类型缓存更新为: " + type);
     }
 
     @SubscribeEvent
@@ -50,7 +47,6 @@ public class ClientEvents {
         cachedGoddessType = GoddessType.NONE;
         isLocallyTransformed = false;
         GoddessHudRenderer.resetState();
-        System.out.println("💾 [客户端] 离开世界，状态已重置");
     }
 
     @SubscribeEvent
@@ -59,7 +55,6 @@ public class ClientEvents {
             cachedTransformStartTime = 0;
             isLocallyTransformed = false;
             GoddessHudRenderer.resetState();
-            System.out.println("💀 [客户端] 玩家死亡，变身状态已重置");
         }
     }
 
@@ -81,7 +76,6 @@ public class ClientEvents {
                     return;
                 }
                 Neptunia.CHANNEL.sendToServer(new TransformRequestPacket(true));
-                System.out.println("📤 [客户端] 发送变身请求到服务端");
             }
         }
     }
@@ -93,7 +87,6 @@ public class ClientEvents {
             isLocallyTransformed = false;
             cachedTransformStartTime = 0;
             GoddessHudRenderer.resetState();
-            System.out.println("⏰ [客户端] 变身超时，自动发送解除请求");
             return;
         }
 

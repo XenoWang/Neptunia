@@ -6,7 +6,8 @@ import com.MinerDimensionNeptunia.NeptuniaMod.client.KeyBindings;
 import com.MinerDimensionNeptunia.NeptuniaMod.config.GoddessConfig;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
-import com.MinerDimensionNeptunia.NeptuniaMod.item.GoddessDiskItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessDiskItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.weapon.GoddessWeaponItem;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessAbilitySyncPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessTypeSelectPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
@@ -21,6 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Tiers;
 import net.minecraftforge.client.ConfigScreenHandler;
 import com.MinerDimensionNeptunia.NeptuniaMod.client.gui.ModConfigScreen;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
@@ -63,6 +65,29 @@ public class Neptunia {
 
         public static final RegistryObject<Item> GODDESS_DISK = ITEMS.register("goddess_disk",
                         () -> new GoddessDiskItem(new Item.Properties().stacksTo(64)));
+
+        // ---- 女神默认武器（钻石强度基准，选定女神后自动获得） ----
+        // 参数说明：SwordItem(Tier, 额外伤害, 攻速) -> 实际伤害 = 额外伤害 + 钻石基础加成 3
+        // 耐久为伪耐久条：不会损坏，随时间与击杀恢复（见 GoddessWeaponEvents）
+        public static final RegistryObject<Item> PROTOTYPE_RAPIER = ITEMS.register("prototype_rapier",
+                        () -> new GoddessWeaponItem(GoddessType.PROTOTYPE, Tiers.DIAMOND, 2, -1.8F,
+                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+
+        public static final RegistryObject<Item> PURPLE_HEART_KATANA = ITEMS.register("purple_heart_katana",
+                        () -> new GoddessWeaponItem(GoddessType.PURPLE_HEART, Tiers.DIAMOND, 3, -2.2F,
+                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+
+        public static final RegistryObject<Item> BLACK_HEART_LONGSWORD = ITEMS.register("black_heart_longsword",
+                        () -> new GoddessWeaponItem(GoddessType.BLACK_HEART, Tiers.DIAMOND, 3, -2.4F,
+                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+
+        public static final RegistryObject<Item> WHITE_HEART_HAMMER = ITEMS.register("white_heart_hammer",
+                        () -> new GoddessWeaponItem(GoddessType.WHITE_HEART, Tiers.DIAMOND, 5, -3.0F,
+                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+
+        public static final RegistryObject<Item> GREEN_HEART_SPEAR = ITEMS.register("green_heart_spear",
+                        () -> new GoddessWeaponItem(GoddessType.GREEN_HEART, Tiers.DIAMOND, 4, -2.6F,
+                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
 
         private static final Map<UUID, SavedPlayerData> PLAYER_DATA_CACHE = new ConcurrentHashMap<>();
 
@@ -108,10 +133,8 @@ public class Neptunia {
                 // ---- 2. 注册客户端配置 ----
                 try {
                         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, GoddessConfig.CLIENT_SPEC);
-                        System.out.println("✅ [Neptunia] 客户端配置已注册！");
                 } catch (Exception e) {
-                        System.err.println("❌ [Neptunia] 配置注册失败: " + e.getMessage());
-                        e.printStackTrace();
+                        // 配置注册失败
                 }
 
                 // ---- 3. ⭐ 注册配置屏幕工厂（让配置按钮可点击） ----
@@ -121,10 +144,8 @@ public class Neptunia {
                                         () -> new ConfigScreenHandler.ConfigScreenFactory(
                                                         (client, parent) -> new ModConfigScreen(parent) // 使用自定义配置屏幕
                                         ));
-                        System.out.println("✅ [Neptunia] 配置屏幕工厂已注册！");
                 } catch (Exception e) {
-                        System.err.println("❌ [Neptunia] 配置屏幕工厂注册失败: " + e.getMessage());
-                        e.printStackTrace();
+                        // 配置屏幕工厂注册失败
                 }
 
                 // ---- 4. 注册物品和事件 ----
@@ -154,7 +175,6 @@ public class Neptunia {
                 if (event.getObject() instanceof Player) {
                         event.addCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY_LOCATION,
                                         new GoddessCapabilityImplementation());
-                        System.out.println("🔗 [Capability] 已附加到玩家");
                 }
         }
 
@@ -169,9 +189,6 @@ public class Neptunia {
                                                         cap.setAbility(cached.ability);
                                                         cap.setGoddessType(cached.goddessType);
                                                         cap.setTransformStartTime(cached.transformStartTime);
-                                                        System.out.println("📥 [服务端] 玩家 "
-                                                                        + serverPlayer.getName().getString() +
-                                                                        " 登录，从缓存恢复数据 - 能力:" + cached.ability);
                                                 });
                         }
 
@@ -185,8 +202,6 @@ public class Neptunia {
                                         if (elapsed >= TRANSFORM_DURATION) {
                                                 cap.setTransformStartTime(0);
                                                 startTime = 0;
-                                                System.out.println("⏰ [服务端] 玩家 " + serverPlayer.getName().getString()
-                                                                + " 的变身已超时，自动解除");
                                         }
                                 }
 
@@ -206,9 +221,6 @@ public class Neptunia {
                                 if (cap.getAbility() || cap.getTransformStartTime() > 0) {
                                         updatePlayerCache(uuid, cap.getAbility(), cap.getGoddessType(),
                                                         cap.getTransformStartTime());
-                                        System.out.println("💀 [服务端] 玩家 " + player.getName().getString() +
-                                                        " 死亡，数据已存入缓存 - 能力:" + cap.getAbility() +
-                                                        ", 类型:" + cap.getGoddessType());
                                 } else {
                                         PLAYER_DATA_CACHE.remove(uuid);
                                 }
@@ -251,12 +263,8 @@ public class Neptunia {
                                         TransformRequestPacket.applyGoddessBoost(player, goddess, false);
                                 }
                                 cap.setTransformStartTime(0);
-                                System.out.println("💀 [服务端] 玩家 " + player.getName().getString() +
-                                                " 死亡复活，已解除变身状态，能力保留: " + cached.ability);
                         } else {
                                 cap.setTransformStartTime(0);
-                                System.out.println("💀 [服务端] 玩家 " + player.getName().getString() +
-                                                " 死亡复活，无变身状态，能力保留: " + cached.ability);
                         }
 
                         if (cap.getAbility()) {
@@ -269,18 +277,13 @@ public class Neptunia {
                                                         cap.getAbility(),
                                                         cap.getTransformStartTime(),
                                                         cap.getGoddessType()));
-                        System.out.println("📤 [服务端] 死亡复活后同步状态给客户端 - 能力: " +
-                                        cap.getAbility() + ", 时间: " + cap.getTransformStartTime() +
-                                        ", 类型: " + cap.getGoddessType());
                 });
         }
 
         private void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
                 if (event.getEntity() instanceof ServerPlayer player) {
                         UUID uuid = player.getUUID();
-                        if (PLAYER_DATA_CACHE.remove(uuid) != null) {
-                                System.out.println("🧹 [缓存] 玩家 " + player.getName().getString() + " 登出，已清理缓存数据");
-                        }
+                        PLAYER_DATA_CACHE.remove(uuid);
                 }
         }
 

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip -p \"/c/Users/Administrator/.gradle/caches/forge_gradle/maven_downloader/net/minecraftforge/forge/1.20.1-47.3.0/forge-1.20.1-47.3.0-sources.jar\" \"patches/net/minecraft/world/item/ItemStack.java.patch\")"
+    ]
+  }
+}

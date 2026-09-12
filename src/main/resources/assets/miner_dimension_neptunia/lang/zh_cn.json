@@ -1,0 +1,13 @@
+{
+    "key.category.neptuniamod": "海王星模组",
+    "key.neptuniamod.transform": "女神化",
+    "item.miner_dimension_neptunia.goddess_disk": "女神磁盘",
+    "itemGroup.miner_dimension_neptunia": "海王星",
+    "jei.miner_dimension_neptunia.goddess_disk.info": "可在末地城宝箱中找到。",
+
+    "item.miner_dimension_neptunia.prototype_rapier": "原始刺剑",
+    "item.miner_dimension_neptunia.purple_heart_katana": "绀紫太刀",
+    "item.miner_dimension_neptunia.black_heart_longsword": "圣黑长剑",
+    "item.miner_dimension_neptunia.white_heart_hammer": "群白战锤",
+    "item.miner_dimension_neptunia.green_heart_spear": "翡绿长枪"
+}

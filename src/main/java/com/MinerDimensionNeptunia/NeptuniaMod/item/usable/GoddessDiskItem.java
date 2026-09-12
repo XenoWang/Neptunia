@@ -1,4 +1,4 @@
-package com.MinerDimensionNeptunia.NeptuniaMod.item;
+package com.MinerDimensionNeptunia.NeptuniaMod.item.usable;
 
 import com.MinerDimensionNeptunia.NeptuniaMod.client.ClientEvents;
 import com.MinerDimensionNeptunia.NeptuniaMod.client.gui.GoddessSelectionScreen;
@@ -27,14 +27,12 @@ public class GoddessDiskItem extends Item {
             if (hasAbility) {
                 // 已拥有能力，提示并阻止使用
                 player.displayClientMessage(Component.literal("你已经拥有女神化的能力了！"), true);
-                System.out.println("🛑 [客户端] 玩家已拥有能力，阻止使用女神磁盘");
                 // 返回 PASS 不消耗物品
                 return InteractionResultHolder.pass(itemstack);
             }
 
             // 未拥有能力，打开选择 GUI
             Minecraft.getInstance().setScreen(new GoddessSelectionScreen());
-            System.out.println("🖥️ [客户端] 打开女神选择界面");
             return InteractionResultHolder.pass(itemstack);
         }
 

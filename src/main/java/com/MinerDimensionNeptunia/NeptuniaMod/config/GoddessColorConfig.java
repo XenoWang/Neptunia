@@ -40,8 +40,7 @@ public class GoddessColorConfig {
             InputStream stream = GoddessColorConfig.class.getClassLoader()
                     .getResourceAsStream("assets/miner_dimension_neptunia/config/goddess_colors.json");
             if (stream == null) {
-                System.err.println("⚠️ [GoddessColorConfig] 配置文件未找到，使用默认颜色");
-                return;
+                return; // 配置文件未找到，使用默认颜色
             }
 
             InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
@@ -55,13 +54,12 @@ public class GoddessColorConfig {
                     JsonObject colorObj = element.getAsJsonObject();
                     GoddessColors colors = parseColors(colorObj);
                     COLOR_MAP.put(type, colors);
-                    System.out.println("📝 [GoddessColorConfig] 加载 " + type.name() + " 颜色配置");
                 }
             }
             reader.close();
             stream.close();
         } catch (Exception e) {
-            System.err.println("⚠️ [GoddessColorConfig] 加载配置失败，使用默认颜色: " + e.getMessage());
+            // 加载配置失败，使用默认颜色
         }
     }
 
@@ -100,7 +98,6 @@ public class GoddessColorConfig {
     public static void reload() {
         COLOR_MAP.clear();
         loadConfig();
-        System.out.println("🔄 [GoddessColorConfig] 配置已重载");
     }
 
     // ===== 颜色数据类 =====

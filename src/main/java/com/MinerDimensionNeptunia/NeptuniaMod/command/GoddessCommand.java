@@ -71,7 +71,6 @@ public class GoddessCommand {
                     PacketDistributor.PLAYER.with(() -> target),
                     new GoddessAbilitySyncPacket(false, 0, GoddessType.NONE));
             source.sendSuccess(() -> Component.literal("已清除 " + target.getName().getString() + " 的女神化能力！"), true);
-            System.out.println("🧹 [服务端] " + source.getTextName() + " 清除了 " + target.getName().getString() + " 的女神化能力");
         });
         return 1;
     }
@@ -110,8 +109,6 @@ public class GoddessCommand {
                     new GoddessAbilitySyncPacket(true, 0, type));
             source.sendSuccess(() -> Component.literal("已为 " + target.getName().getString() +
                     " 添加女神化能力，类型: " + type.name()), true);
-            System.out.println("✨ [服务端] " + source.getTextName() + " 为 " + target.getName().getString() +
-                    " 添加了女神化能力，类型: " + type.name());
         });
         return 1;
     }

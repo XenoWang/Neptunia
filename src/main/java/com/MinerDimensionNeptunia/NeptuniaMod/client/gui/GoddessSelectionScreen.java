@@ -172,7 +172,6 @@ public class GoddessSelectionScreen extends Screen {
         @Override
         public void onClick(double mouseX, double mouseY) {
             Neptunia.CHANNEL.sendToServer(new GoddessTypeSelectPacket(goddess.getId()));
-            System.out.println("📤 [客户端] 选择女神: " + goddess.getDisplayName());
             GoddessSelectionScreen.this.onClose();
         }
 

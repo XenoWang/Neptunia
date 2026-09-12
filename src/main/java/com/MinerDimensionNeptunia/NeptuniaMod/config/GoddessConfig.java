@@ -11,7 +11,6 @@ public class GoddessConfig {
         final Pair<ClientConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ClientConfig::new);
         CLIENT_SPEC = specPair.getRight();
         CLIENT = specPair.getLeft();
-        System.out.println("✅ [GoddessConfig] 客户端配置规范已加载！");
     }
 
     public static class ClientConfig {

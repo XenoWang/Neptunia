@@ -31,6 +31,7 @@ public class GoddessRegistry {
         // Prototype（平衡型，开发者专属）
         Goddess prototype = new Goddess(GoddessType.PROTOTYPE, "原始之初")
                 .setDevOnly(true) // 普通玩家在选择界面不可见
+                .setStarterWeapon(Neptunia.PROTOTYPE_RAPIER) // 默认武器：刺剑
                 .setDescription("均衡型女神，能力全面均衡，测试专用。")
                 .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/prototype.png"), 512, 512)
                 .addAttributeBoost(Attributes.ATTACK_DAMAGE, 3.0)
@@ -46,46 +47,50 @@ public class GoddessRegistry {
 
         // 绀紫之心（涅普顿，均衡型）：五项属性各提升 30%（0.3 × 5 = 1.5）
         Goddess purpleHeart = new Goddess(GoddessType.PURPLE_HEART, "绀紫之心")
+                .setStarterWeapon(Neptunia.PURPLE_HEART_KATANA) // 默认武器：太刀
                 .setDescription("均衡型。五项能力全面提升，攻守兼备。")
                 .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/purple_heart.png"), 512, 512)
-                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.3)
-                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.3)
-                .addAttributeBoost(Attributes.ARMOR, 1.3)
-                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.3)
-                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.3);
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.25) // DPS
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.35) // 1.25×1.35 ≈ 1.69
+                .addAttributeBoost(Attributes.ARMOR, 1.3) // 生存
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.2) // 1.3×1.2 ≈ 1.56
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.3); // 移速
         registerGoddess(purpleHeart);
 
         // 圣黑之心（诺瓦露，速攻型）：0.5 + 0.5 + 0.1 + 0.2 + 0.2 = 1.5
         Goddess blackHeart = new Goddess(GoddessType.BLACK_HEART, "圣黑之心")
+                .setStarterWeapon(Neptunia.BLACK_HEART_LONGSWORD) // 默认武器：长剑
                 .setDescription("速攻型。攻势凌厉，防御与韧性同样不俗。")
                 .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/black_heart.png"), 512, 512)
-                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.5)
-                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.5)
-                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.1)
-                .addAttributeBoost(Attributes.ARMOR, 1.2)
-                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.2);
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.4) // DPS
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.45) // 1.4×1.45 ≈ 2.03
+                .addAttributeBoost(Attributes.ARMOR, 1.15) // 生存
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.15) // 1.15×1.15 ≈ 1.32
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.2); // 移速
         registerGoddess(blackHeart);
 
         // 群白之心（布兰，重装型）：-0.3 + 1.0 + 0.1 + 0.35 + 0.35 = 1.5
         Goddess whiteHeart = new Goddess(GoddessType.WHITE_HEART, "群白之心")
+                .setStarterWeapon(Neptunia.WHITE_HEART_HAMMER) // 默认武器：战锤
                 .setDescription("重装型。一击必杀的破坏力与坚固防御，挥击稍显迟缓。")
                 .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/white_heart.png"), 512, 512)
-                .addAttributeBoost(Attributes.ATTACK_SPEED, 0.7)
-                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.0)
-                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.1)
-                .addAttributeBoost(Attributes.ARMOR, 1.35)
-                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.35);
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 0.75) // 降低攻速
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.5) // 0.75×2.5 ≈ 1.875
+                .addAttributeBoost(Attributes.ARMOR, 1.45) // 生存
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.3) // 1.45×1.3 ≈ 1.885
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.05); // 移速略升
         registerGoddess(whiteHeart);
 
         // 翡绿之心（贝露，速攻型）：0.5 + 0.5 + 0.3 + 0.1 + 0.1 = 1.5
         Goddess greenHeart = new Goddess(GoddessType.GREEN_HEART, "翡绿之心")
+                .setStarterWeapon(Neptunia.GREEN_HEART_SPEAR) // 默认武器：长枪
                 .setDescription("速攻型。身手迅捷攻势凶猛，护甲相对薄弱。")
                 .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/green_heart.png"), 512, 512)
-                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.5)
-                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.5)
-                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.3)
-                .addAttributeBoost(Attributes.ARMOR, 1.1)
-                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.1);
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.45) // DPS
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.35) // 1.45×1.35 ≈ 1.96
+                .addAttributeBoost(Attributes.ARMOR, 1.1) // 生存
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.1) // 1.1×1.1 ≈ 1.21
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.5); // ⭐ 移速最高
         registerGoddess(greenHeart);
     }
 
@@ -94,7 +99,6 @@ public class GoddessRegistry {
      */
     public void registerGoddess(Goddess goddess) {
         goddesses.put(goddess.getId(), goddess);
-        System.out.println("📝 [GoddessRegistry] 已注册女神: " + goddess.getDisplayName());
     }
 
     /**

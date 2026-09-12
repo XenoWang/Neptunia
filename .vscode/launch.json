@@ -18,19 +18,6 @@
     },
     {
       "type": "java",
-      "name": "runClientDev",
-      "request": "launch",
-      "projectName": "Neptunia",
-      "cwd": "${workspaceFolder}\\run",
-      "vmArgs": "-Dforge.logging.console.level\u003ddebug -Dforge.logging.markers\u003dREGISTRIES -Dforge.enabledGameTestNamespaces\u003dminer_dimension_neptunia -XX:HeapDumpPath\u003dMojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump",
-      "args": "--username hsds",
-      "env": {
-        "MOD_CLASSES": "miner_dimension_neptunia%%${workspaceFolder}\\build\\resources\\main;miner_dimension_neptunia%%${workspaceFolder}\\build\\classes\\java\\main"
-      },
-      "preLaunchTask": "prepareRunClientDevCompile"
-    },
-    {
-      "type": "java",
       "name": "runData",
       "request": "launch",
       "mainClass": "cpw.mods.bootstraplauncher.BootstrapLauncher",

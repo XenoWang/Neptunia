@@ -42,14 +42,10 @@ public class GoddessAbilitySyncPacket {
                     cap.setAbility(msg.hasAbility);
                     cap.setTransformStartTime(msg.transformStartTime);
                     cap.setGoddessType(msg.goddessType);
-                    System.out.println("📥 [客户端] 收到同步包 - 能力: " + msg.hasAbility +
-                            ", 时间: " + msg.transformStartTime + ", 类型: " + msg.goddessType);
                 });
                 ClientEvents.setGoddessAbility(msg.hasAbility);
                 ClientEvents.setTransformStartTime(msg.transformStartTime);
                 ClientEvents.setGoddessType(msg.goddessType);
-            } else {
-                System.out.println("❌ [客户端] 同步包处理失败：player 为 null");
             }
         });
         ctx.get().setPacketHandled(true);

@@ -52,7 +52,7 @@ public class DevPlayerList {
                 }
                 return names;
             } catch (Exception e) {
-                System.out.println("⚠️ [DevPlayerList] 读取开发者名单失败，使用默认名单: " + e.getMessage());
+                // 读取失败，使用默认名单
             }
         }
 
@@ -77,9 +77,8 @@ public class DevPlayerList {
             try (Writer writer = Files.newBufferedWriter(FILE, StandardCharsets.UTF_8)) {
                 GSON.toJson(root, writer);
             }
-            System.out.println("📝 [DevPlayerList] 已生成默认开发者名单: " + FILE);
         } catch (Exception e) {
-            System.out.println("⚠️ [DevPlayerList] 写入默认开发者名单失败: " + e.getMessage());
+            // 写入默认名单失败（使用内存中的默认名单）
         }
     }
 }

@@ -3,5 +3,11 @@
     "key.neptuniamod.transform": "Transform",
     "item.miner_dimension_neptunia.goddess_disk": "Goddess Disk",
     "itemGroup.miner_dimension_neptunia": "Neptunia",
-    "jei.miner_dimension_neptunia.goddess_disk.info": "Can be found in End City treasure chests."
+    "jei.miner_dimension_neptunia.goddess_disk.info": "Can be found in End City treasure chests.",
+
+    "item.miner_dimension_neptunia.prototype_rapier": "Prototype Rapier",
+    "item.miner_dimension_neptunia.purple_heart_katana": "Purple Heart Katana",
+    "item.miner_dimension_neptunia.black_heart_longsword": "Black Heart Longsword",
+    "item.miner_dimension_neptunia.white_heart_hammer": "White Heart Hammer",
+    "item.miner_dimension_neptunia.green_heart_spear": "Green Heart Spear"
 }

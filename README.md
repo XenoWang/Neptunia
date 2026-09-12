@@ -47,7 +47,10 @@ src/main/java/com/MinerDimensionNeptunia/NeptuniaMod/
 ├── compat/        # 第三方模组兼容（JEI 插件：隐藏配方 + 获取提示）
 ├── config/        # 配置定义（ForgeConfigSpec）与颜色配置读取
 ├── goddess/       # ★ 女神数据模型与注册中心（新增女神核心入口）
-├── item/          # 物品（女神磁盘）与创造模式标签页
+├── item/          # 物品（按用途分子包）与创造模式标签页注册中心
+│   ├── usable/    # 可使用物品（右键触发效果，如女神磁盘）
+│   ├── ingredient/# 材料类物品（合成 / 升级素材）
+│   └── weapon/    # 女神专属武器
 ├── loot/          # 战利品修改器注册（末地城宝箱注入女神磁盘）
 ├── network/       # 网络同步包（变身请求 / 类型选择 / 能力同步）
 ├── recipe/        # 自定义配方序列化器（女神磁盘隐藏合成配方）
