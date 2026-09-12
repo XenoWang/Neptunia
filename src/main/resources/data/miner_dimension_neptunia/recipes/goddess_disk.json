@@ -1,0 +1,17 @@
+{
+  "type": "miner_dimension_neptunia:goddess_disk",
+  "category": "misc",
+  "pattern": [
+    " N ",
+    "BDE",
+    " I "
+  ],
+  "key": {
+    "N": { "item": "minecraft:nether_star" },
+    "B": { "item": "minecraft:beacon" },
+    "D": { "tag": "minecraft:music_discs" },
+    "E": { "item": "minecraft:emerald_block" },
+    "I": { "item": "minecraft:netherite_ingot" }
+  },
+  "result": { "item": "miner_dimension_neptunia:goddess_disk" }
+}

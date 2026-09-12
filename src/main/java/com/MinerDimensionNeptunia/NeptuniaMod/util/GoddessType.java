@@ -2,7 +2,11 @@ package com.MinerDimensionNeptunia.NeptuniaMod.util;
 
 public enum GoddessType {
     NONE,
-    PROTOTYPE;
+    PROTOTYPE,
+    PURPLE_HEART,
+    BLACK_HEART,
+    WHITE_HEART,
+    GREEN_HEART;
 
     public boolean isNone() {
         return this == NONE;

@@ -1,6 +1,8 @@
 package com.MinerDimensionNeptunia.NeptuniaMod.goddess;
 
+import com.MinerDimensionNeptunia.NeptuniaMod.Neptunia;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 
 import java.util.Collection;
@@ -26,8 +28,10 @@ public class GoddessRegistry {
      * 注册所有内置女神
      */
     private void registerDefaultGoddesses() {
-        // 原型女神（平衡型）
-        Goddess prototype = new Goddess(GoddessType.PROTOTYPE, "Prototype Goddess")
+        // Prototype（平衡型）
+        Goddess prototype = new Goddess(GoddessType.PROTOTYPE, "原始之初")
+                .setDescription("均衡型女神，能力全面均衡，适合初次变身的新手玩家。")
+                .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/prototype.png"), 512, 512)
                 .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.0)
                 .addAttributeBoost(Attributes.MOVEMENT_SPEED, 2.0)
                 .addAttributeBoost(Attributes.ARMOR, 2.0)
@@ -35,13 +39,52 @@ public class GoddessRegistry {
         registerGoddess(prototype);
 
         // ============================================================
-        // 🆕 在这里添加更多女神，例如：
+        // 四位 CPU 女神（各属性变化量之和不超过 1.5）
         // ============================================================
-        // Goddess PurpleHeart = new Goddess(GoddessType.STRENGTH, "紫色之心")
-        //         .addAttributeBoost(Attributes.ATTACK_DAMAGE, 3.0)
-        //         .addAttributeBoost(Attributes.ARMOR, 1.5);
-        // registerGoddess(PurpleHeart);
-        // ============================================================
+
+        // 绀紫之心（涅普顿，均衡型）：五项属性各提升 30%（0.3 × 5 = 1.5）
+        Goddess purpleHeart = new Goddess(GoddessType.PURPLE_HEART, "绀紫之心")
+                .setDescription("均衡型。五项能力全面提升，攻守兼备。")
+                .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/purple_heart.png"), 512, 512)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.3)
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.3)
+                .addAttributeBoost(Attributes.ARMOR, 1.3)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.3)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.3);
+        registerGoddess(purpleHeart);
+
+        // 圣黑之心（诺瓦露，速攻型）：0.5 + 0.5 + 0.1 + 0.2 + 0.2 = 1.5
+        Goddess blackHeart = new Goddess(GoddessType.BLACK_HEART, "圣黑之心")
+                .setDescription("速攻型。攻势凌厉，防御与韧性同样不俗。")
+                .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/black_heart.png"), 512, 512)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.5)
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.5)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.1)
+                .addAttributeBoost(Attributes.ARMOR, 1.2)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.2);
+        registerGoddess(blackHeart);
+
+        // 群白之心（布兰，重装型）：-0.3 + 1.0 + 0.1 + 0.35 + 0.35 = 1.5
+        Goddess whiteHeart = new Goddess(GoddessType.WHITE_HEART, "群白之心")
+                .setDescription("重装型。一击必杀的破坏力与坚固防御，挥击稍显迟缓。")
+                .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/white_heart.png"), 512, 512)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 0.7)
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.0)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.1)
+                .addAttributeBoost(Attributes.ARMOR, 1.35)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.35);
+        registerGoddess(whiteHeart);
+
+        // 翡绿之心（贝露，速攻型）：0.5 + 0.5 + 0.3 + 0.1 + 0.1 = 1.5
+        Goddess greenHeart = new Goddess(GoddessType.GREEN_HEART, "翡绿之心")
+                .setDescription("速攻型。身手迅捷攻势凶猛，护甲相对薄弱。")
+                .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/green_heart.png"), 512, 512)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.5)
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.5)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.3)
+                .addAttributeBoost(Attributes.ARMOR, 1.1)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.1);
+        registerGoddess(greenHeart);
     }
 
     /**

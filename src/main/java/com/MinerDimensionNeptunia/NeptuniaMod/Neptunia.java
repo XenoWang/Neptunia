@@ -12,6 +12,9 @@ import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessTypeSelectPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import com.MinerDimensionNeptunia.NeptuniaMod.command.GoddessCommand;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.ModCreativeTabs;
+import com.MinerDimensionNeptunia.NeptuniaMod.loot.ModLootModifiers;
+import com.MinerDimensionNeptunia.NeptuniaMod.recipe.ModRecipeSerializers;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -128,6 +131,9 @@ public class Neptunia {
                 IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
                 ITEMS.register(modEventBus);
+                ModCreativeTabs.register(modEventBus);      // 创造标签页（见 item 包）
+                ModRecipeSerializers.register(modEventBus); // 配方序列化器（见 recipe 包）
+                ModLootModifiers.register(modEventBus);     // 战利品修改器（见 loot 包）
                 modEventBus.addListener(this::registerKeyMappings);
 
                 MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, this::attachCapabilities);

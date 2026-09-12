@@ -1,5 +1,7 @@
 {
     "key.category.neptuniamod": "Neptunia Mod",
     "key.neptuniamod.transform": "Transform",
-    "item.miner_dimension_neptunia.goddess_disk": "Goddess Disk"
+    "item.miner_dimension_neptunia.goddess_disk": "Goddess Disk",
+    "itemGroup.miner_dimension_neptunia": "Neptunia",
+    "jei.miner_dimension_neptunia.goddess_disk.info": "Can be found in End City treasure chests."
 }
