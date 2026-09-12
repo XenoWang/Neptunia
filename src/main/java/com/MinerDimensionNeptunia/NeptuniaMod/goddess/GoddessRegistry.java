@@ -28,15 +28,16 @@ public class GoddessRegistry {
      * 注册所有内置女神
      */
     private void registerDefaultGoddesses() {
-        // Prototype（平衡型）
+        // Prototype（平衡型，开发者专属）
         Goddess prototype = new Goddess(GoddessType.PROTOTYPE, "原始之初")
-                .setDescription("均衡型女神，能力全面均衡，适合初次变身的新手玩家。")
+                .setDevOnly(true) // 普通玩家在选择界面不可见
+                .setDescription("均衡型女神，能力全面均衡，测试专用。")
                 .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/prototype.png"), 512, 512)
-                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.0)
-                .addAttributeBoost(Attributes.ATTACK_SPEED, 2.0)
-                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 2.0)
-                .addAttributeBoost(Attributes.ARMOR, 2.0)
-                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 2.0);
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 3.0)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 3.0)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 3.0)
+                .addAttributeBoost(Attributes.ARMOR, 3.0)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 3.0);
         registerGoddess(prototype);
 
         // ============================================================

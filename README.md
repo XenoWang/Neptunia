@@ -79,22 +79,19 @@ Key press 玩家按键 (KeyBindings)
 > **zero changes** to capability / network / gui code — just follow the steps below.  
 > 女神化系统已独立拆分，新增女神**不需要**改动 capability / network / gui 代码。
 
-> **Anti-stacking 防叠加**: Every transform start / revert **clears all previous goddess
-> attribute modifiers first** (matched by `goddess_boost_` name prefix), so switching
-> goddesses can never stack multipliers.  
-> 每次变身/解除都会**先清除所有女神属性加成**（按 `goddess_boost_` 名称前缀匹配），
-> 更换女神类型不会产生乘区叠加。
+> **Anti-stacking 防叠加**: Every transform start / revert **clears previous goddess
+> attribute modifiers first**, so switching goddesses can never stack multipliers.  
+> 每次变身/解除都会**先清除旧的女神属性加成**，更换女神类型不会产生乘区叠加。
 
 ---
 
 ## Goddesses 内置女神一览
 
-All attribute multipliers are applied as `MULTIPLY_BASE`（数值 = 倍率 − 1）.  
-所有属性加成以 `MULTIPLY_BASE` 应用（实际增量 = 倍率 − 1）。
+属性倍率作用于基础值（最终属性 = 基础值 × 倍率）。
 
 | 显示名 | 枚举名 | 攻速 | 攻击 | 移速 | 护甲 | 护甲韧性 | 定位 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 原始之初 | `prototype` | — | ×2.0 | ×2.0 | ×2.0 | ×2.0 | 纯测试，后续会删除 |
+| 原始之初 | `prototype` | — | ×3.0 | ×3.0 | ×3.0 | ×3.0 | 纯测试用 |
 | 绀紫之心 | `purple_heart` | ×1.3 | ×1.3 | ×1.3 | ×1.3 | ×1.3 | 均衡 |
 | 圣黑之心 | `black_heart` | ×1.5 | ×1.5 | ×1.1 | ×1.2 | ×1.2 | 速攻 |
 | 群白之心 | `white_heart` | ×0.7 | ×2.0 | ×1.1 | ×1.35 | ×1.35 | 重装 |
@@ -114,7 +111,7 @@ All attribute multipliers are applied as `MULTIPLY_BASE`（数值 = 倍率 − 1
 | 末地城宝箱 | **35%** 概率开出 1 个（`data/miner_dimension_neptunia/loot_modifiers/goddess_disk_in_end_city.json` 可调概率与数量） |
 | 合成 | 隐藏配方，见下表（**不在配方书 / JEI 中展示**，但可以正常合成） |
 
-### 合成配方 / Crafting Recipe（隐藏，主要防止测试时候找不到 Hidden, Only to prevent unable to find in chests）
+### 合成配方 / Crafting Recipe（隐藏）
 
 ```
   空    下界之星     空
@@ -123,7 +120,9 @@ All attribute multipliers are applied as `MULTIPLY_BASE`（数值 = 倍率 − 1
 ```
 
 - "任意唱片" = 任意原版音乐唱片（`#minecraft:music_discs` 标签）。
-- 配方通过自定义序列化器标记为"特殊配方"从而对配方书隐藏，JEI 侧由插件隐藏。
+- 配方对配方书与 JEI 隐藏，但不影响正常合成。
+
+> 该配方同时作为**保底获取途径**（防止测试时在末地城宝箱找不到）。
 
 ### 材质 / Texture
 
@@ -138,7 +137,7 @@ All attribute multipliers are applied as `MULTIPLY_BASE`（数值 = 倍率 − 1
 
 ## Goddess Selection Screen 女神选择界面
 
-使用女神磁盘后打开的**游戏王卡牌风格**选择界面：
+使用女神磁盘后打开的**卡牌风格**选择界面：
 
 - 每张卡牌：顶部名字条 → **立绘框**（等比缩放居中）→ 下方**介绍文字**（自动换行）。
 - **每行最多 4 张**，按界面宽度自动调整每行数量并换行，每行独立居中。
@@ -160,10 +159,10 @@ py tools/resize_texture.py <原图.png> <输出路径.png> 512 512
 
 ## JEI Integration / JEI 集成
 
-- 通过 `compat/` 下的 `@JeiPlugin` 插件实现（**未安装 JEI 时相关类不会被加载**，零影响）。
-- **隐藏**女神磁盘的合成配方（JEI 运行时 API `hideRecipes`，配方重载后自动重新隐藏）。
+- 通过 `compat/` 下的 JEI 插件实现（**未安装 JEI 时相关类不会被加载**，零影响）。
+- **隐藏**女神磁盘的合成配方。
 - 女神磁盘显示信息页提示：*"Can be found in End City treasure chests."*（`lang/en_us.json` 的 `jei.miner_dimension_neptunia.goddess_disk.info`）。
-- 物品本身可通过名字 / `@miner_dimension_neptunia` 在 JEI 中搜索到（创造标签页 + 额外物品注册双保险）。
+- 物品本身可通过名字或 `@miner_dimension_neptunia` 在 JEI 中搜索到。
 
 ---
 

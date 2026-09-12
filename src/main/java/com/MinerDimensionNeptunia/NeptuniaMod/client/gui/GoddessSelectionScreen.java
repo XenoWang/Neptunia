@@ -1,9 +1,11 @@
 package com.MinerDimensionNeptunia.NeptuniaMod.client.gui;
 
 import com.MinerDimensionNeptunia.NeptuniaMod.Neptunia;
+import com.MinerDimensionNeptunia.NeptuniaMod.client.DevPlayerList;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessTypeSelectPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -59,6 +61,13 @@ public class GoddessSelectionScreen extends Screen {
     @Override
     protected void init() {
         List<Goddess> goddesses = new ArrayList<>(GoddessRegistry.getInstance().getAllGoddesses());
+
+        // 过滤开发者专属女神：仅开发者名单（JSON 文件）内的玩家可见（界面会按剩余数量自动重排）
+        String playerName = Minecraft.getInstance().player != null
+                ? Minecraft.getInstance().player.getGameProfile().getName()
+                : "";
+        boolean isDevPlayer = DevPlayerList.isDevPlayer(playerName);
+        goddesses.removeIf(goddess -> goddess.isDevOnly() && !isDevPlayer);
 
         int usableWidth = Math.max(1, this.width - PAGE_MARGIN * 2);
         int usableHeight = Math.max(1, this.height - TITLE_AREA - BUTTON_AREA);

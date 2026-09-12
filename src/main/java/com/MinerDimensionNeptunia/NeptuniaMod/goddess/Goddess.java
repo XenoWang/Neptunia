@@ -23,6 +23,9 @@ public class Goddess {
     private int artTextureWidth = 64;
     private int artTextureHeight = 64;
 
+    // 开发者专属：仅开发者名单内的玩家在选择界面可见
+    private boolean devOnly = false;
+
     public Goddess(GoddessType id, String displayName) {
         this.id = id;
         this.displayName = displayName;
@@ -49,6 +52,12 @@ public class Goddess {
         return this;
     }
 
+    /** 标记为开发者专属女神：选择界面仅对开发者名单内的玩家显示 */
+    public Goddess setDevOnly(boolean devOnly) {
+        this.devOnly = devOnly;
+        return this;
+    }
+
     public String getColorKey() {
         return colorKey;
     }
@@ -64,6 +73,7 @@ public class Goddess {
     public ResourceLocation getArtTexture() { return artTexture; }
     public int getArtTextureWidth() { return artTextureWidth; }
     public int getArtTextureHeight() { return artTextureHeight; }
+    public boolean isDevOnly() { return devOnly; }
     public Map<Attribute, Double> getAttributeMultipliers() { return attributeMultipliers; }
     public UUID getBoostUUID() { return boostUUID; }
 

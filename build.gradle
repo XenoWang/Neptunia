@@ -84,6 +84,12 @@ minecraft {
         client {
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             property 'forge.enabledGameTestNamespaces', mod_id
+
+            // 测试开发者名单用：可用 -PmcUsername=<名字> 指定启动用户名
+            // 例如：gradlew runClient -PmcUsername=hsds （不传则用默认名 Dev）
+            if (project.hasProperty('mcUsername')) {
+                args '--username', project.property('mcUsername')
+            }
         }
 
         server {
