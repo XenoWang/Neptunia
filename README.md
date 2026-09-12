@@ -23,6 +23,7 @@ A Minecraft mod based on *Hyperdimension Neptunia* （超次元游戏海王星�
 - [Goddesses 内置女神一览](#goddesses-内置女神一览)
 - [Goddess Disk 女神磁盘](#goddess-disk-女神磁盘)
 - [Goddess Selection Screen 女神选择界面](#goddess-selection-screen-女神选择界面)
+- [Goddess Weapons 女神武器](#goddess-weapons-女神武器)
 - [JEI Integration JEI 集成](#jei-integration-jei-集成)
 - [Commands 命令](#commands-命令)
 - [Adding a New Goddess 添加新女神](#adding-a-new-goddess-添加新女神)
@@ -41,27 +42,41 @@ A Minecraft mod based on *Hyperdimension Neptunia* （超次元游戏海王星�
 
 ```
 src/main/java/com/MinerDimensionNeptunia/NeptuniaMod/
-├── capability/    # 女神化能力系统（附加到玩家、NBT 读写、序列化）
-├── client/        # 客户端代码（事件、按键、HUD 渲染、女神选择界面、配置界面）
-├── command/       # 命令（/neptunia goddess ...）
-├── compat/        # 第三方模组兼容（JEI 插件：隐藏配方 + 获取提示）
-├── config/        # 配置定义（ForgeConfigSpec）与颜色配置读取
-├── goddess/       # ★ 女神数据模型与注册中心（新增女神核心入口）
-├── item/          # 物品（按用途分子包）与创造模式标签页注册中心
-│   ├── usable/    # 可使用物品（右键触发效果，如女神磁盘）
-│   ├── ingredient/# 材料类物品（合成 / 升级素材）
-│   └── weapon/    # 女神专属武器
-├── loot/          # 战利品修改器注册（末地城宝箱注入女神磁盘）
-├── network/       # 网络同步包（变身请求 / 类型选择 / 能力同步）
-├── recipe/        # 自定义配方序列化器（女神磁盘隐藏合成配方）
-└── util/          # 工具类（GoddessType 枚举）
+├── capability/      # 女神化能力系统（附加到玩家、NBT 读写、序列化）
+├── client/          # 客户端代码
+│   ├── config/      #   客户端配置加载（女神化条颜色等）
+│   └── gui/         #   界面与渲染
+│       └── config/  #     配置界面模块
+├── command/         # 命令（/neptunia goddess ...）
+├── compat/          # 第三方模组兼容
+│   └── jei/         #   JEI 插件（隐藏配方 + 获取提示）
+├── config/          # 配置定义（ForgeConfigSpec）
+├── goddess/         # ★ 女神数据模型与注册中心（新增女神核心入口）
+├── item/            # 物品与创造模式标签页注册中心
+│   ├── ingredient/  #   材料类物品（合成 / 升级素材）
+│   ├── usable/      #   可使用物品（右键触发效果，如女神磁盘）
+│   └── weapon/      #   女神专属武器与伪耐久逻辑
+├── loot/            # 战利品修改器注册（末地城宝箱注入女神磁盘）
+├── network/         # 网络同步包（变身请求 / 类型选择 / 能力同步）
+├── recipe/          # 自定义配方序列化器（女神磁盘隐藏合成配方）
+└── util/            # 工具类（GoddessType 枚举）
 
 src/main/resources/
-├── assets/miner_dimension_neptunia/    # lang 语言 / models 物品模型 / textures 贴图 / config 颜色配置
-├── data/                               # 合成配方与战利品修改器配置（JSON）
-└── META-INF/                           # mods.toml 等模组元数据
+├── assets/miner_dimension_neptunia/
+│   ├── config/      #   女神化条颜色配置
+│   ├── lang/        #   语言文件（en_us / zh_cn）
+│   ├── models/item/ #   物品模型
+│   └── textures/
+│       ├── gui/goddess/  # 女神立绘
+│       └── item/         # 物品贴图
+├── data/
+│   ├── forge/loot_modifiers/       # 战利品修改器启用列表
+│   └── miner_dimension_neptunia/
+│       ├── loot_modifiers/         # 战利品修改器配置（末地城宝箱）
+│       └── recipes/                # 合成配方
+└── META-INF/        # mods.toml 等模组元数据
 
-tools/                                  # Python 辅助脚本（占位立绘生成、光碟材质生成、贴图压缩）
+tools/               # Python 辅助脚本（占位贴图生成、贴图压缩）
 ```
 
 ---
@@ -160,6 +175,43 @@ py tools/resize_texture.py <原图.png> <输出路径.png> 512 512
 
 ---
 
+## Goddess Weapons 女神武器
+
+每位女神都有一把专属武器，使用女神磁盘选定该女神后**自动获得**（已拥有同种武器不重复给予，背包满时掉落在脚下）。
+
+| 女神 | 武器 | 注册名 | 伤害 | 攻速 |
+| --- | --- | --- | --- | --- |
+| 原始之初 | 刺剑 | `prototype_rapier` | 5 | -1.8 |
+| 绀紫之心 | 太刀 | `purple_heart_katana` | 6 | -2.2 |
+| 圣黑之心 | 长剑 | `black_heart_longsword` | 6 | -2.4 |
+| 群白之心 | 战锤 | `white_heart_hammer` | 8 | -3.0 |
+| 翡绿之心 | 长枪 | `green_heart_spear` | 7 | -2.6 |
+
+- 全部为钻石品质（耐久 1561），数值以原版钻石剑 / 钻石斧为基准。
+- 武器同时出现在 **Neptunia 创造标签页**，因此原版创造搜索与 JEI 均可检索；后续新增合成配方会正常展示（未做隐藏处理）。
+
+### 伪耐久条 / Pseudo-Durability
+
+武器**永远不会损坏**，耐久条相当于一个会自动恢复的资源条：
+
+| 机制 | 说明 |
+| --- | --- |
+| 永不损坏 | 耐久最多扣到「上限 − 1」，单次扣减量被截断（见 `GoddessWeaponItem#damageItem`） |
+| 随时间恢复 | 每秒 +10 点 |
+| 击杀恢复 | 击杀任意生物额外 +200 点（远程击杀同样计入） |
+| 作用范围 | 玩家背包内（含副手）的所有女神武器 |
+
+> 恢复数值为 `item/weapon/GoddessWeaponEvents.java` 顶部的常量，按需调整即可。
+
+### 模型与贴图 / Model & Texture
+
+- 模型：`item/handheld`（MC 原版手持模型，剑 / 斧 / 枪共用同一父模型），**无需为不同武器类型单独建模型**。
+- 贴图：**16×16 正方形 PNG，透明背景**，放在 `textures/item/<注册名>.png`，同名覆盖即可生效。
+- 占位贴图可用 `py tools/generate_weapon_textures.py` 重新生成。
+- 作图要求：物品需**斜置绘制**（左下握柄 → 右上刀尖 / 锤头 / 枪尖），四周留 1 像素边距，与原版工具一致。
+
+---
+
 ## JEI Integration / JEI 集成
 
 - 通过 `compat/` 下的 JEI 插件实现（**未安装 JEI 时相关类不会被加载**，零影响）。
@@ -187,7 +239,7 @@ All commands require **OP level 2** (`/op <player>`).
 
 ## Adding a New Goddess / 添加新女神
 
-新增一位女神只需按顺序修改 **2 个文件 + 1 张图**：
+新增一位女神只需按顺序修改 **2 个文件 + 2 张图**（若需要专属武器，另加武器注册与武器贴图）：
 
 ### Step 1 / 第 1 步：添加枚举 — `util/GoddessType.java`
 
@@ -213,6 +265,7 @@ private void registerDefaultGoddesses() {
             .setDescription("均衡型。五项能力全面提升，攻守兼备。")   // 卡牌下方介绍文字
             .setArtTexture(new ResourceLocation(Neptunia.MODID,
                     "textures/gui/goddess/purple_heart.png"), 512, 512)  // 立绘路径 + 实际像素尺寸
+            .setStarterWeapon(Neptunia.PURPLE_HEART_KATANA)          // 默认武器（物品注册项）
             .addAttributeBoost(Attributes.ATTACK_SPEED, 1.3)
             .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.3)
             .addAttributeBoost(Attributes.ARMOR, 1.3)
@@ -224,6 +277,8 @@ private void registerDefaultGoddesses() {
 
 - `.setDescription(...)`：选择界面卡牌上的介绍文字（建议简短，小卡上显示有限）。
 - `.setArtTexture(...)`：立绘贴图路径与图片实际宽高；未设置则卡牌立绘区留空。
+- `.setStarterWeapon(...)`：选定该女神后自动给予的默认武器（传物品注册项）；未设置则不给武器。
+  新武器需先在 `item/weapon/` 下建类并在主类 `ITEMS` 中注册，详见[女神武器](#goddess-weapons-女神武器)。
 - 倍率建议遵循"各属性变化量之和 ≤ 1.5"的平衡规则。
 
 ### Step 3 / 第 3 步：立绘贴图与颜色配置
@@ -277,6 +332,8 @@ All UI code lives in `client/gui/`:
 | Bar position / size / style 位置 / 大小 / 样式 | `client/gui/GoddessHudRenderer.java` |
 | 选择界面卡牌大小 / 每行张数 / 字号档位 | `client/gui/GoddessSelectionScreen.java` 顶部常量 |
 | 卡牌上的立绘 | `textures/gui/goddess/*.png` + `goddess/GoddessRegistry.java` |
+| 武器数值 / 伪耐久恢复速度 | `Neptunia.java`（伤害攻速）+ `item/weapon/GoddessWeaponEvents.java` 顶部常量 |
+| 武器贴图 | `textures/item/*.png`（16×16，同名覆盖） |
 | Add / change keys 新增 / 修改按键 | `client/KeyBindings.java` + `lang/en_us.json` |
 | HUD offset / scale config 偏移 / 缩放配置 | `client/gui/config/HudConfigModule.java` + `GoddessConfig.java` |
 | Add a new config module 新增配置模块 | ① Create module class → ② Register in `Modules.java` |
@@ -337,6 +394,7 @@ Adding a goddess requires **no new packets** — `GoddessType` syncs through the
 | --- | --- |
 | `tools/generate_goddess_placeholder.py` | 生成女神立绘**占位图**（128×128，PALETTES 里加配色即可生成新女神占位） |
 | `tools/generate_disk_texture.py` | 生成/微调**女神磁盘材质**（32×32 斜角光碟，改顶部几何参数后重跑） |
+| `tools/generate_weapon_textures.py` | 生成**女神武器占位贴图**（16×16，PALETTES 里加配色 / 选形状即可生成新武器占位） |
 | `tools/resize_texture.py` | 把任意 PNG **双线性插值压缩**到指定尺寸（支持 8 位 RGB/RGBA）：`py tools/resize_texture.py <输入.png> <输出.png> 512 512` |
 
 ---
