@@ -33,13 +33,14 @@ public class GoddessRegistry {
                 .setDescription("均衡型女神，能力全面均衡，适合初次变身的新手玩家。")
                 .setArtTexture(new ResourceLocation(Neptunia.MODID, "textures/gui/goddess/prototype.png"), 512, 512)
                 .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.0)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 2.0)
                 .addAttributeBoost(Attributes.MOVEMENT_SPEED, 2.0)
                 .addAttributeBoost(Attributes.ARMOR, 2.0)
                 .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 2.0);
         registerGoddess(prototype);
 
         // ============================================================
-        // 四位 CPU 女神（各属性变化量之和不超过 1.5）
+        // 四位 超次元游戏海王星 CPU 女神
         // ============================================================
 
         // 绀紫之心（涅普顿，均衡型）：五项属性各提升 30%（0.3 × 5 = 1.5）

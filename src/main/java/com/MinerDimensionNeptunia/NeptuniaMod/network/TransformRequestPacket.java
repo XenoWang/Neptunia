@@ -14,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.PacketDistributor;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -124,28 +125,46 @@ public class TransformRequestPacket {
     }
 
     /**
-     * 应用或移除女神的属性加成
+     * 应用或移除女神的属性加成。
+     * 注意：应用前会先无条件清除玩家身上所有女神加成，
+     * 防止更换女神/异常流程导致多个女神的加成叠加。
      */
     public static void applyGoddessBoost(ServerPlayer player, Goddess goddess, boolean apply) {
         if (goddess == null) return;
-        UUID boostUUID = goddess.getBoostUUID();
 
+        // 先清除所有女神加成（自愈残留的叠加状态）
+        removeAllGoddessBoosts(player);
+        if (!apply) return;
+
+        UUID boostUUID = goddess.getBoostUUID();
         for (Map.Entry<Attribute, Double> entry : goddess.getAttributeMultipliers().entrySet()) {
             Attribute attr = entry.getKey();
             double multiplier = entry.getValue();
             AttributeInstance instance = player.getAttribute(attr);
             if (instance == null) continue;
 
-            AttributeModifier existing = instance.getModifier(boostUUID);
-            if (apply) {
-                if (existing != null) instance.removeModifier(existing);
-                AttributeModifier modifier = new AttributeModifier(boostUUID,
-                        "goddess_boost_" + goddess.getId().name(),
-                        multiplier - 1.0,
-                        AttributeModifier.Operation.MULTIPLY_BASE);
-                instance.addPermanentModifier(modifier);
-            } else {
-                if (existing != null) instance.removeModifier(existing);
+            AttributeModifier modifier = new AttributeModifier(boostUUID,
+                    "goddess_boost_" + goddess.getId().name(),
+                    multiplier - 1.0,
+                    AttributeModifier.Operation.MULTIPLY_BASE);
+            instance.addPermanentModifier(modifier);
+        }
+    }
+
+    /**
+     * 移除玩家身上所有女神的加成修饰器（无论来自哪位女神）。
+     * 遍历注册中心里所有女神涉及的属性，按修饰器名称前缀匹配清除。
+     */
+    private static void removeAllGoddessBoosts(ServerPlayer player) {
+        for (Goddess registered : GoddessRegistry.getInstance().getAllGoddesses()) {
+            for (Attribute attr : registered.getAttributeMultipliers().keySet()) {
+                AttributeInstance instance = player.getAttribute(attr);
+                if (instance == null) continue;
+                for (AttributeModifier modifier : new ArrayList<>(instance.getModifiers())) {
+                    if (modifier.getName().startsWith("goddess_boost_")) {
+                        instance.removeModifier(modifier);
+                    }
+                }
             }
         }
     }

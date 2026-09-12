@@ -2,6 +2,7 @@ package com.MinerDimensionNeptunia.NeptuniaMod.command;
 
 import com.MinerDimensionNeptunia.NeptuniaMod.Neptunia;
 import com.MinerDimensionNeptunia.NeptuniaMod.capability.GoddessCapabilityProvider;
+import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessAbilitySyncPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
@@ -90,6 +91,13 @@ public class GoddessCommand {
         }
 
         target.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
+            // 如果正在变身，先移除旧女神的属性加成，避免新旧加成叠加
+            if (cap.getTransformStartTime() > 0) {
+                Goddess oldGoddess = GoddessRegistry.getInstance().getGoddess(cap.getGoddessType());
+                if (oldGoddess != null) {
+                    TransformRequestPacket.applyGoddessBoost(target, oldGoddess, false);
+                }
+            }
             // 如果已有能力，覆盖（赋予新类型）
             cap.setAbility(true);
             cap.setGoddessType(type);
