@@ -20,68 +20,45 @@ A Minecraft mod based on *Hyperdimension Neptunia* （超次元游戏海王星�
 
 - [Project Structure 项目结构](#project-structure-项目结构)
 - [Core Systems 核心系统概览](#core-systems-核心系统概览)
+- [Goddesses 内置女神一览](#goddesses-内置女神一览)
+- [Goddess Disk 女神磁盘](#goddess-disk-女神磁盘)
+- [Goddess Selection Screen 女神选择界面](#goddess-selection-screen-女神选择界面)
+- [JEI Integration JEI 集成](#jei-integration-jei-集成)
 - [Commands 命令](#commands-命令)
-- [Adding a New Goddess 添加新女神（3 步）](#adding-a-new-goddess-添加新女神3-步)
+- [Adding a New Goddess 添加新女神](#adding-a-new-goddess-添加新女神)
 - [GUI / UI File Guide (for UI developers) GUI 文件速查](#gui--ui-file-guide-for-ui-developers-gui-文件速查)
 - [Configuration System 配置系统](#configuration-system-配置系统)
 - [Network Packets 网络包说明](#network-packets-网络包说明)
 - [Capability System 能力系统](#capability-system-能力系统)
+- [Tools 工具脚本](#tools-工具脚本)
 - [Build & Run 构建与运行](#build--run-构建与运行)
 
 ---
 
 ## Project Structure / 项目结构
 
+> 以下为**文件夹层面**的框架总览（主类 `Neptunia.java` 位于 Java 包根目录，负责所有注册入口）。
+
 ```
 src/main/java/com/MinerDimensionNeptunia/NeptuniaMod/
-├── Neptunia.java                           # Main mod class 主类
-│
-├── capability/                             # Goddess capability system 女神化能力系统
-│   ├── GoddessCapability.java              # Capability interface 能力接口
-│   ├── GoddessCapabilityImplementation.java # Implementation (data storage / NBT) 实现（数据存储/读写）
-│   └── GoddessCapabilityProvider.java      # Provider (attach & serialize) 提供者（附加到玩家、序列化）
-│
-├── client/
-│   ├── ClientEvents.java                   # Client event handler 客户端事件处理
-│   ├── KeyBindings.java                    # Key bindings 按键绑定注册
-│   ├── gui/
-│   │   ├── GoddessHudRenderer.java         # ★ In-game HUD (transformation bar) ★ 游戏内女神化条渲染
-│   │   ├── GoddessSelectionScreen.java     # Goddess selection screen 女神选择界面
-│   │   ├── ModConfigScreen.java            # ★ Main config screen (module list) ★ 配置主界面（模块列表）
-│   │   └── config/                         # ★ Config modules ★ 配置模块
-│   │       ├── ConfigModule.java           # Module interface 模块接口
-│   │       ├── HudConfigModule.java        # HUD config sub-screen HUD 配置子界面
-│   │       └── Modules.java                # ★ Module registry (add new modules here) ★ 模块注册中心
-│   └── config/                             # Config loader (non-GUI) 配置加载器（非界面）
-│       ├── GoddessColorConfig.java         # Reads goddess_colors.json 读取颜色配置
-│       └── GoddessConfig.java              # ForgeConfigSpec definition 配置定义
-│
-├── command/                                # ★ Commands (standalone) ★ 命令（已独立拆分）
-│   └── GoddessCommand.java                 # /neptunia goddess commands 女神化命令
-│
-├── goddess/                                # ★ Goddess data (standalone module) ★ 女神化数据（已独立拆分）
-│   ├── Goddess.java                        # Data class for a single goddess 单个女神数据类
-│   └── GoddessRegistry.java                # Goddess registry 女神注册表
-│
-├── item/                                   # Items (e.g. goddess disks) 物品
-│   └── GoddessDiskItem.java
-│
-├── network/                                # Network sync packets 网络同步包
-│   ├── GoddessAbilitySyncPacket.java       # Sync abilities to client 同步能力到客户端
-│   ├── GoddessTypeSelectPacket.java        # Select goddess type 选择女神类型
-│   └── TransformRequestPacket.java         # Request transformation 请求变身
-│
-└── util/
-    └── GoddessType.java                    # ★ Goddess type enum ★ 女神类别枚举
+├── capability/    # 女神化能力系统（附加到玩家、NBT 读写、序列化）
+├── client/        # 客户端代码（事件、按键、HUD 渲染、女神选择界面、配置界面）
+├── command/       # 命令（/neptunia goddess ...）
+├── compat/        # 第三方模组兼容（JEI 插件：隐藏配方 + 获取提示）
+├── config/        # 配置定义（ForgeConfigSpec）与颜色配置读取
+├── goddess/       # ★ 女神数据模型与注册中心（新增女神核心入口）
+├── item/          # 物品（女神磁盘）与创造模式标签页
+├── loot/          # 战利品修改器注册（末地城宝箱注入女神磁盘）
+├── network/       # 网络同步包（变身请求 / 类型选择 / 能力同步）
+├── recipe/        # 自定义配方序列化器（女神磁盘隐藏合成配方）
+└── util/          # 工具类（GoddessType 枚举）
 
-src/main/resources/assets/miner_dimension_neptunia/
-├── config/
-│   └── goddess_colors.json                 # ★ Transformation bar colors ★ 女神化条颜色配置
-├── lang/
-│   └── en_us.json                          # Language file 语言文件
-├── models/item/
-│   └── goddess_disk.json                   # Goddess disk model 女神碟片模型
-└── pack.mcmeta
+src/main/resources/
+├── assets/miner_dimension_neptunia/    # lang 语言 / models 物品模型 / textures 贴图 / config 颜色配置
+├── data/                               # 合成配方与战利品修改器配置（JSON）
+└── META-INF/                           # mods.toml 等模组元数据
+
+tools/                                  # Python 辅助脚本（占位立绘生成、光碟材质生成、贴图压缩）
 ```
 
 ---
@@ -93,14 +70,100 @@ Data flow of the transformation system / 女神化完整数据流：
 ```
 Key press 玩家按键 (KeyBindings)
   → TransformRequestPacket (C → S 请求变身)
-  → Server-side Capability switches GoddessType / applies Goddess data 服务端切换女神类型
+  → Server-side Capability switches GoddessType / applies Goddess data 服务端切换女神类型并应用属性加成
   → GoddessAbilitySyncPacket (S → C 同步能力)
   → Client GoddessHudRenderer draws the bar using GoddessColorConfig 客户端渲染女神化条
 ```
 
-> **Note 注意**: The goddess system is now a standalone module. Adding a new goddess requires  
-> **zero changes** to capability / network / gui code — just follow the 3 steps below.  
-> 女神化系统已独立拆分，新增女神**不需要**改动 capability / network / gui 代码，只需按下面 3 步操作。
+> **Note 注意**: The goddess system is a standalone module. Adding a new goddess requires  
+> **zero changes** to capability / network / gui code — just follow the steps below.  
+> 女神化系统已独立拆分，新增女神**不需要**改动 capability / network / gui 代码。
+
+> **Anti-stacking 防叠加**: Every transform start / revert **clears all previous goddess
+> attribute modifiers first** (matched by `goddess_boost_` name prefix), so switching
+> goddesses can never stack multipliers.  
+> 每次变身/解除都会**先清除所有女神属性加成**（按 `goddess_boost_` 名称前缀匹配），
+> 更换女神类型不会产生乘区叠加。
+
+---
+
+## Goddesses 内置女神一览
+
+All attribute multipliers are applied as `MULTIPLY_BASE`（数值 = 倍率 − 1）.  
+所有属性加成以 `MULTIPLY_BASE` 应用（实际增量 = 倍率 − 1）。
+
+| 显示名 | 枚举名 | 攻速 | 攻击 | 移速 | 护甲 | 护甲韧性 | 定位 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 原始之初 | `prototype` | — | ×2.0 | ×2.0 | ×2.0 | ×2.0 | 新手/测试 |
+| 绀紫之心 | `purple_heart` | ×1.3 | ×1.3 | ×1.3 | ×1.3 | ×1.3 | 均衡 |
+| 圣黑之心 | `black_heart` | ×1.5 | ×1.5 | ×1.1 | ×1.2 | ×1.2 | 速攻 |
+| 群白之心 | `white_heart` | ×0.7 | ×2.0 | ×1.1 | ×1.35 | ×1.35 | 重装 |
+| 翡绿之心 | `green_heart` | ×1.5 | ×1.5 | ×1.3 | ×1.1 | ×1.1 | 速攻 |
+
+- 四位 CPU 女神遵循"各属性变化量之和 ≤ 1.5"的平衡规则（如绀紫之心 0.3 × 5 = 1.5）。
+- 译名采用 3DM《超次元游戏海王星:重生2》官方中文版：绀紫之心 / 圣黑之心 / 群白之心 / 翡绿之心。
+
+---
+
+## Goddess Disk 女神磁盘
+
+### 获取方式 / Acquisition
+
+| 方式 | 说明 |
+| --- | --- |
+| 末地城宝箱 | **35%** 概率开出 1 个（`data/miner_dimension_neptunia/loot_modifiers/goddess_disk_in_end_city.json` 可调概率与数量） |
+| 合成 | 隐藏配方，见下表（**不在配方书 / JEI 中展示**，但可以正常合成） |
+
+### 合成配方 / Crafting Recipe（隐藏）
+
+```
+  空    下界之星     空
+ 信标   任意唱片   绿宝石块
+  空   下界合金锭    空
+```
+
+- "任意唱片" = 任意原版音乐唱片（`#minecraft:music_discs` 标签）。
+- 配方通过自定义序列化器标记为"特殊配方"从而对配方书隐藏，JEI 侧由插件隐藏。
+
+### 材质 / Texture
+
+- 物品贴图：`assets/miner_dimension_neptunia/textures/item/goddess_disk.png`（32×32 斜角光碟）。
+- 可用 `tools/generate_disk_texture.py` 重新生成/微调。
+
+### 创造模式 / Creative
+
+- 模组注册了 **Neptunia** 创造标签页，女神磁盘可在创造模式物品栏直接搜索获取（同时也是 JEI 物品列表的数据来源）。
+
+---
+
+## Goddess Selection Screen 女神选择界面
+
+使用女神磁盘后打开的**游戏王卡牌风格**选择界面：
+
+- 每张卡牌：顶部名字条 → **立绘框**（等比缩放居中）→ 下方**介绍文字**（自动换行）。
+- **每行最多 4 张**，按界面宽度自动调整每行数量并换行，每行独立居中。
+- 文字按卡牌宽度分为 **4 档字号**（1.0 / 0.85 / 0.72 / 0.62），仅在初始化时计算一次。
+- 悬停高亮、点击即选中。
+
+### 替换立绘 / Replacing the Art
+
+1. 将图片放到 `assets/miner_dimension_neptunia/textures/gui/goddess/`，文件名 = 枚举名小写（如 `purple_heart.png`）。
+2. 建议 **512×512**（任意尺寸也可，代码按实际像素等比缩放），非 512 请用工具压缩：
+
+```bash
+py tools/resize_texture.py <原图.png> <输出路径.png> 512 512
+```
+
+3. 若图片尺寸不是 512×512，需同步修改 `goddess/GoddessRegistry.java` 中该女神 `setArtTexture(..., 宽, 高)` 的参数。
+
+---
+
+## JEI Integration / JEI 集成
+
+- 通过 `compat/` 下的 `@JeiPlugin` 插件实现（**未安装 JEI 时相关类不会被加载**，零影响）。
+- **隐藏**女神磁盘的合成配方（JEI 运行时 API `hideRecipes`，配方重载后自动重新隐藏）。
+- 女神磁盘显示信息页提示：*"Can be found in End City treasure chests."*（`lang/en_us.json` 的 `jei.miner_dimension_neptunia.goddess_disk.info`）。
+- 物品本身可通过名字 / `@miner_dimension_neptunia` 在 JEI 中搜索到（创造标签页 + 额外物品注册双保险）。
 
 ---
 
@@ -112,72 +175,69 @@ All commands require **OP level 2** (`/op <player>`).
 | --- | --- |
 | `/neptunia goddess clear` | Clear your own goddess ability 清除自己的女神化能力 |
 | `/neptunia goddess clear <player>` | Clear a target player's goddess ability 清除指定玩家的女神化能力 |
-| `/neptunia goddess add <player> <type>` | Add goddess ability to a target player (type: `prototype`, etc.) 为指定玩家添加女神化能力 |
+| `/neptunia goddess add <player> <type>` | Add goddess ability to a target player 为指定玩家添加女神化能力 |
 
-> **Auto-completion**: Tab works for player names and goddess types (`prototype`, etc.).  
-> **自动补全**：按 Tab 自动补全玩家名和女神类型（如 `prototype`）。
+可用类型 `type`：`prototype`、`purple_heart`、`black_heart`、`white_heart`、`green_heart`（Tab 自动补全）。
+
+> 在目标玩家**正在变身时**执行 `add` 会先移除旧女神的属性加成，再切换类型，不会叠加乘区。
 
 ---
 
-## Adding a New Goddess / 添加新女神（3 步）
+## Adding a New Goddess / 添加新女神
 
-Adding a new goddess only takes **3 files**, in order:  
-新增一位女神只需按顺序修改 **3 个文件**：
+新增一位女神只需按顺序修改 **2 个文件 + 1 张图**：
 
-### Step 1 / 第 1 步：Add the enum entry — `util/GoddessType.java`
+### Step 1 / 第 1 步：添加枚举 — `util/GoddessType.java`
 
 ```java
 public enum GoddessType {
     NONE,
-    PROTOTYPE;   // 已有的
+    PROTOTYPE,
+    PURPLE_HEART,
+    BLACK_HEART,
+    WHITE_HEART,
+    GREEN_HEART;
     // 这里添加新女神名称，后续步骤名称需要保持统一
     // Add new goddess names here. Keep the name consistent in the following steps!
 }
 ```
 
-### Step 2 / 第 2 步：Register the data — `goddess/GoddessRegistry.java`
-
-Add the new goddess inside `registerDefaultGoddesses()`:
+### Step 2 / 第 2 步：注册数据 — `goddess/GoddessRegistry.java`
 
 ```java
 private void registerDefaultGoddesses() {
-    Goddess prototype = new Goddess(GoddessType.PROTOTYPE, "Prototype Goddess")
-            .addAttributeBoost(Attributes.ATTACK_DAMAGE, 2.0)
-            .addAttributeBoost(Attributes.MOVEMENT_SPEED, 2.0)
-            .addAttributeBoost(Attributes.ARMOR, 2.0)
-            .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 2.0);
-    registerGoddess(prototype);
-
-    // ============================================================
-    // 🆕 在这里添加更多女神
-    // 🆕 Add more goddesses here
-    // ============================================================
-    // Goddess purpleHeart = new Goddess(GoddessType.PURPLE_HEART, "紫色之心")
-    //         .addAttributeBoost(Attributes.ATTACK_DAMAGE, 3.0)
-    //         .addAttributeBoost(Attributes.ARMOR, 1.5);
-    // registerGoddess(purpleHeart);
-    // ============================================================
+    // 示例：新女神
+    Goddess purpleHeart = new Goddess(GoddessType.PURPLE_HEART, "绀紫之心")
+            .setDescription("均衡型。五项能力全面提升，攻守兼备。")   // 卡牌下方介绍文字
+            .setArtTexture(new ResourceLocation(Neptunia.MODID,
+                    "textures/gui/goddess/purple_heart.png"), 512, 512)  // 立绘路径 + 实际像素尺寸
+            .addAttributeBoost(Attributes.ATTACK_SPEED, 1.3)
+            .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.3)
+            .addAttributeBoost(Attributes.ARMOR, 1.3)
+            .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.3)
+            .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.3);
+    registerGoddess(purpleHeart);   // 必须注册，否则不生效
 }
 ```
 
-- `new Goddess(GoddessType, "Display Name")` creates the goddess; chain `.addAttributeBoost(...)` to attach attribute modifiers (attack, speed, armor, toughness, etc.).
-- Always end with `registerGoddess(goddess)` — an unregistered goddess will not work.
+- `.setDescription(...)`：选择界面卡牌上的介绍文字（建议简短，小卡上显示有限）。
+- `.setArtTexture(...)`：立绘贴图路径与图片实际宽高；未设置则卡牌立绘区留空。
+- 倍率建议遵循"各属性变化量之和 ≤ 1.5"的平衡规则。
 
-### Step 3 / 第 3 步：Bar colors — `resources/assets/miner_dimension_neptunia/config/goddess_colors.json`
+### Step 3 / 第 3 步：立绘贴图与颜色配置
 
-Add a color config block for the new goddess. The JSON key is the enum name in **lowercase**:
+- 立绘：放到 `assets/miner_dimension_neptunia/textures/gui/goddess/<枚举名小写>.png`（512×512，见[替换立绘](#替换立绘-replacing-the-art)）。
+- HUD 颜色：在 `assets/miner_dimension_neptunia/config/goddess_colors.json` 添加同键名（枚举名小写）的颜色块：
 
 ```json
 {
-    "prototype": {
+    "purple_heart": {
         "main": "#8B5CF6",
         "secondary": "#A78BFA",
         "border": "#6D28D9",
         "text": "#FFFFFF",
         "background": "#1E1B4B"
     }
-    // 🆕 在这里添加更多女神的颜色配置
-    // 🆕 Add more goddess color configs here
 }
 ```
 
@@ -189,7 +249,7 @@ Add a color config block for the new goddess. The JSON key is the enum name in *
 | `text` | HUD text 文字颜色 |
 | `background` | Bar background 背景色 |
 
-- Loaded at startup by `client/config/GoddessColorConfig.java`, consumed by `GoddessHudRenderer`.
+- Loaded at startup by `config/GoddessColorConfig.java`, consumed by `GoddessHudRenderer`.
 - After editing, reload resources with **F3+T** (no game restart needed).
 
 ---
@@ -201,7 +261,7 @@ All UI code lives in `client/gui/`:
 | File 文件 | Responsibility 职责 |
 | --- | --- |
 | `client/gui/GoddessHudRenderer.java` | In-game HUD: transformation bar position, size, animation, text 女神化条的位置、尺寸、动画、文字渲染 |
-| `client/gui/GoddessSelectionScreen.java` | Goddess selection screen: layout, buttons, selection state 女神选择界面布局、按钮、选中态 |
+| `client/gui/GoddessSelectionScreen.java` | 卡牌式女神选择界面：布局（每行最多 4 张自动换行）、字号档位、悬停高亮 |
 | `client/gui/ModConfigScreen.java` | ★ Main config screen: displays a list of config modules 配置主界面：显示配置模块列表 |
 | `client/gui/config/ConfigModule.java` | ★ Interface for config modules 配置模块接口 |
 | `client/gui/config/HudConfigModule.java` | ★ HUD config sub-screen (sliders for position & scale) HUD 配置子界面（位置/缩放滑块） |
@@ -213,7 +273,8 @@ All UI code lives in `client/gui/`:
 | --- | --- |
 | Bar colors 女神化条颜色 | `resources/.../config/goddess_colors.json` (no code change) |
 | Bar position / size / style 位置 / 大小 / 样式 | `client/gui/GoddessHudRenderer.java` |
-| Selection screen layout 选择界面布局 | `client/gui/GoddessSelectionScreen.java` |
+| 选择界面卡牌大小 / 每行张数 / 字号档位 | `client/gui/GoddessSelectionScreen.java` 顶部常量 |
+| 卡牌上的立绘 | `textures/gui/goddess/*.png` + `goddess/GoddessRegistry.java` |
 | Add / change keys 新增 / 修改按键 | `client/KeyBindings.java` + `lang/en_us.json` |
 | HUD offset / scale config 偏移 / 缩放配置 | `client/gui/config/HudConfigModule.java` + `GoddessConfig.java` |
 | Add a new config module 新增配置模块 | ① Create module class → ② Register in `Modules.java` |
@@ -246,7 +307,7 @@ The configuration system is **modular**:
 
 | Packet 包 | Direction 方向 | Purpose 作用 |
 | --- | --- | --- |
-| `TransformRequestPacket` | C → S | Request transform / revert 请求变身 / 解除 |
+| `TransformRequestPacket` | C → S | Request transform / revert 请求变身 / 解除（含属性加成应用与防叠加清理） |
 | `GoddessTypeSelectPacket` | C → S | Select goddess in the UI 界面选定女神 |
 | `GoddessAbilitySyncPacket` | S → C | Sync abilities to client (for HUD) 同步能力供 HUD 显示 |
 
@@ -266,6 +327,18 @@ Adding a goddess requires **no new packets** — `GoddessType` syncs through the
 
 ---
 
+## Tools 工具脚本
+
+`tools/` 下的 Python 辅助脚本（全部纯标准库，无需 pip install）：
+
+| Script 脚本 | Usage 用途 |
+| --- | --- |
+| `tools/generate_goddess_placeholder.py` | 生成女神立绘**占位图**（128×128，PALETTES 里加配色即可生成新女神占位） |
+| `tools/generate_disk_texture.py` | 生成/微调**女神磁盘材质**（32×32 斜角光碟，改顶部几何参数后重跑） |
+| `tools/resize_texture.py` | 把任意 PNG **双线性插值压缩**到指定尺寸（支持 8 位 RGB/RGBA）：`py tools/resize_texture.py <输入.png> <输出.png> 512 512` |
+
+---
+
 ## Build & Run / 构建与运行
 
 ```bash
@@ -278,8 +351,9 @@ gradlew.bat build        # Windows
 ```
 
 **Tips 提示**:
-- **F3+T** reloads resources (lang, JSON configs, models) without restarting.
+- **F3+T** reloads resources (lang, JSON configs, models, textures) without restarting.
 - Configuration changes are saved via the in-game config screen and persisted to `.toml` files in `run/config/`.
+- 开发环境 `runClient` 会自动附带 JEI（`runtimeOnly` 依赖），方便测试 JEI 集成；构建产物不含 JEI。
 
 ---
 
