@@ -114,7 +114,7 @@ All attribute multipliers are applied as `MULTIPLY_BASE`（数值 = 倍率 − 1
 | 末地城宝箱 | **35%** 概率开出 1 个（`data/miner_dimension_neptunia/loot_modifiers/goddess_disk_in_end_city.json` 可调概率与数量） |
 | 合成 | 隐藏配方，见下表（**不在配方书 / JEI 中展示**，但可以正常合成） |
 
-### 合成配方 / Crafting Recipe（隐藏）
+### 合成配方 / Crafting Recipe（隐藏，主要防止测试时候找不到 Hidden, Only to prevent unable to find in chests）
 
 ```
   空    下界之星     空
