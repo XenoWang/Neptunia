@@ -66,28 +66,63 @@ public class Neptunia {
         public static final RegistryObject<Item> GODDESS_DISK = ITEMS.register("goddess_disk",
                         () -> new GoddessDiskItem(new Item.Properties().stacksTo(64)));
 
-        // ---- 女神默认武器（钻石强度基准，选定女神后自动获得） ----
-        // 参数说明：SwordItem(Tier, 额外伤害, 攻速) -> 实际伤害 = 额外伤害 + 钻石基础加成 3
+        // ---- 女神武器：5 位女神 × 6 阶 ----
+        // 伤害阶梯（总伤害）：7 / 8 / 12 / 18 / 27 / 54
+        // 攻速按武器类型差异化（刺剑最快、战锤最慢），完整数值表见 tools/weapon_tiers.csv
         // 耐久为伪耐久条：不会损坏，随时间与击杀恢复（见 GoddessWeaponEvents）
-        public static final RegistryObject<Item> PROTOTYPE_RAPIER = ITEMS.register("prototype_rapier",
-                        () -> new GoddessWeaponItem(GoddessType.PROTOTYPE, Tiers.DIAMOND, 2, -1.8F,
-                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        public static final RegistryObject<Item> PROTOTYPE_RAPIER_TIER1 = registerWeapon("prototype_rapier_tier1", GoddessType.PROTOTYPE, 3, -2.0F);
+        public static final RegistryObject<Item> PROTOTYPE_RAPIER_TIER2 = registerWeapon("prototype_rapier_tier2", GoddessType.PROTOTYPE, 4, -2.0F);
+        public static final RegistryObject<Item> PROTOTYPE_RAPIER_TIER3 = registerWeapon("prototype_rapier_tier3", GoddessType.PROTOTYPE, 8, -2.1F);
+        public static final RegistryObject<Item> PROTOTYPE_RAPIER_TIER4 = registerWeapon("prototype_rapier_tier4", GoddessType.PROTOTYPE, 14, -2.1F);
+        public static final RegistryObject<Item> PROTOTYPE_RAPIER_TIER5 = registerWeapon("prototype_rapier_tier5", GoddessType.PROTOTYPE, 23, -2.2F);
+        public static final RegistryObject<Item> PROTOTYPE_RAPIER_TIER6 = registerWeapon("prototype_rapier_tier6", GoddessType.PROTOTYPE, 50, -2.2F);
 
-        public static final RegistryObject<Item> PURPLE_HEART_KATANA = ITEMS.register("purple_heart_katana",
-                        () -> new GoddessWeaponItem(GoddessType.PURPLE_HEART, Tiers.DIAMOND, 3, -2.2F,
-                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        public static final RegistryObject<Item> NEPTUNE_SWORD_TIER1 = registerWeapon("neptune_sword_tier1", GoddessType.PURPLE_HEART, 3, -2.2F);
+        public static final RegistryObject<Item> NEPTUNE_SWORD_TIER2 = registerWeapon("neptune_sword_tier2", GoddessType.PURPLE_HEART, 4, -2.2F);
+        public static final RegistryObject<Item> NEPTUNE_SWORD_TIER3 = registerWeapon("neptune_sword_tier3", GoddessType.PURPLE_HEART, 8, -2.3F);
+        public static final RegistryObject<Item> NEPTUNE_SWORD_TIER4 = registerWeapon("neptune_sword_tier4", GoddessType.PURPLE_HEART, 14, -2.3F);
+        public static final RegistryObject<Item> NEPTUNE_SWORD_TIER5 = registerWeapon("neptune_sword_tier5", GoddessType.PURPLE_HEART, 23, -2.4F);
+        public static final RegistryObject<Item> NEPTUNE_SWORD_TIER6 = registerWeapon("neptune_sword_tier6", GoddessType.PURPLE_HEART, 50, -2.4F);
 
-        public static final RegistryObject<Item> BLACK_HEART_LONGSWORD = ITEMS.register("black_heart_longsword",
-                        () -> new GoddessWeaponItem(GoddessType.BLACK_HEART, Tiers.DIAMOND, 3, -2.4F,
-                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        public static final RegistryObject<Item> NOIRE_SWORD_TIER1 = registerWeapon("noire_sword_tier1", GoddessType.BLACK_HEART, 3, -2.4F);
+        public static final RegistryObject<Item> NOIRE_SWORD_TIER2 = registerWeapon("noire_sword_tier2", GoddessType.BLACK_HEART, 4, -2.4F);
+        public static final RegistryObject<Item> NOIRE_SWORD_TIER3 = registerWeapon("noire_sword_tier3", GoddessType.BLACK_HEART, 8, -2.5F);
+        public static final RegistryObject<Item> NOIRE_SWORD_TIER4 = registerWeapon("noire_sword_tier4", GoddessType.BLACK_HEART, 14, -2.5F);
+        public static final RegistryObject<Item> NOIRE_SWORD_TIER5 = registerWeapon("noire_sword_tier5", GoddessType.BLACK_HEART, 23, -2.6F);
+        public static final RegistryObject<Item> NOIRE_SWORD_TIER6 = registerWeapon("noire_sword_tier6", GoddessType.BLACK_HEART, 50, -2.6F);
 
-        public static final RegistryObject<Item> WHITE_HEART_HAMMER = ITEMS.register("white_heart_hammer",
-                        () -> new GoddessWeaponItem(GoddessType.WHITE_HEART, Tiers.DIAMOND, 5, -3.0F,
-                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        public static final RegistryObject<Item> BLANC_HAMMER_TIER1 = registerWeapon("blanc_hammer_tier1", GoddessType.WHITE_HEART, 3, -2.8F);
+        public static final RegistryObject<Item> BLANC_HAMMER_TIER2 = registerWeapon("blanc_hammer_tier2", GoddessType.WHITE_HEART, 4, -2.8F);
+        public static final RegistryObject<Item> BLANC_HAMMER_TIER3 = registerWeapon("blanc_hammer_tier3", GoddessType.WHITE_HEART, 8, -2.9F);
+        public static final RegistryObject<Item> BLANC_HAMMER_TIER4 = registerWeapon("blanc_hammer_tier4", GoddessType.WHITE_HEART, 14, -2.9F);
+        public static final RegistryObject<Item> BLANC_HAMMER_TIER5 = registerWeapon("blanc_hammer_tier5", GoddessType.WHITE_HEART, 23, -3.0F);
+        public static final RegistryObject<Item> BLANC_HAMMER_TIER6 = registerWeapon("blanc_hammer_tier6", GoddessType.WHITE_HEART, 50, -3.0F);
 
-        public static final RegistryObject<Item> GREEN_HEART_SPEAR = ITEMS.register("green_heart_spear",
-                        () -> new GoddessWeaponItem(GoddessType.GREEN_HEART, Tiers.DIAMOND, 4, -2.6F,
-                                        new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        public static final RegistryObject<Item> VERT_SPEAR_TIER1 = registerWeapon("vert_spear_tier1", GoddessType.GREEN_HEART, 3, -2.6F);
+        public static final RegistryObject<Item> VERT_SPEAR_TIER2 = registerWeapon("vert_spear_tier2", GoddessType.GREEN_HEART, 4, -2.6F);
+        public static final RegistryObject<Item> VERT_SPEAR_TIER3 = registerWeapon("vert_spear_tier3", GoddessType.GREEN_HEART, 8, -2.7F);
+        public static final RegistryObject<Item> VERT_SPEAR_TIER4 = registerWeapon("vert_spear_tier4", GoddessType.GREEN_HEART, 14, -2.7F);
+        public static final RegistryObject<Item> VERT_SPEAR_TIER5 = registerWeapon("vert_spear_tier5", GoddessType.GREEN_HEART, 23, -2.8F);
+        public static final RegistryObject<Item> VERT_SPEAR_TIER6 = registerWeapon("vert_spear_tier6", GoddessType.GREEN_HEART, 50, -2.8F);
+
+        /** 所有女神武器（创造标签页与 JEI 展示用） */
+        public static final java.util.List<RegistryObject<Item>> ALL_GODDESS_WEAPONS = java.util.List.of(
+                        PROTOTYPE_RAPIER_TIER1, PROTOTYPE_RAPIER_TIER2, PROTOTYPE_RAPIER_TIER3,
+                        PROTOTYPE_RAPIER_TIER4, PROTOTYPE_RAPIER_TIER5, PROTOTYPE_RAPIER_TIER6,
+                        NEPTUNE_SWORD_TIER1, NEPTUNE_SWORD_TIER2, NEPTUNE_SWORD_TIER3,
+                        NEPTUNE_SWORD_TIER4, NEPTUNE_SWORD_TIER5, NEPTUNE_SWORD_TIER6,
+                        NOIRE_SWORD_TIER1, NOIRE_SWORD_TIER2, NOIRE_SWORD_TIER3,
+                        NOIRE_SWORD_TIER4, NOIRE_SWORD_TIER5, NOIRE_SWORD_TIER6,
+                        BLANC_HAMMER_TIER1, BLANC_HAMMER_TIER2, BLANC_HAMMER_TIER3,
+                        BLANC_HAMMER_TIER4, BLANC_HAMMER_TIER5, BLANC_HAMMER_TIER6,
+                        VERT_SPEAR_TIER1, VERT_SPEAR_TIER2, VERT_SPEAR_TIER3,
+                        VERT_SPEAR_TIER4, VERT_SPEAR_TIER5, VERT_SPEAR_TIER6);
+
+        private static RegistryObject<Item> registerWeapon(String name, GoddessType type, int damageBonus, float speedModifier) {
+                return ITEMS.register(name,
+                                () -> new GoddessWeaponItem(type, Tiers.DIAMOND, damageBonus, speedModifier,
+                                                new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        }
 
         private static final Map<UUID, SavedPlayerData> PLAYER_DATA_CACHE = new ConcurrentHashMap<>();
 

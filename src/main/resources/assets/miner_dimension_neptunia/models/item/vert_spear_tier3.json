@@ -1,0 +1,77 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "miner_dimension_neptunia:item/weapon/vert_spear_tier3",
+    "particle": "miner_dimension_neptunia:item/weapon/vert_spear_tier3"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        7.95
+      ],
+      "to": [
+        16,
+        16,
+        8.05
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#layer0"
+        },
+        "north": {
+          "uv": [
+            16,
+            0,
+            0,
+            16
+          ],
+          "texture": "#layer0"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.1,
+            16
+          ],
+          "texture": "#layer0"
+        },
+        "east": {
+          "uv": [
+            15.9,
+            0,
+            16,
+            16
+          ],
+          "texture": "#layer0"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.1
+          ],
+          "texture": "#layer0"
+        },
+        "down": {
+          "uv": [
+            0,
+            15.9,
+            16,
+            16
+          ],
+          "texture": "#layer0"
+        }
+      }
+    }
+  ]
+}

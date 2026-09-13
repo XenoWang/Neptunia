@@ -177,18 +177,31 @@ py tools/resize_texture.py <原图.png> <输出路径.png> 512 512
 
 ## Goddess Weapons 女神武器
 
-每位女神都有一把专属武器，使用女神磁盘选定该女神后**自动获得**（已拥有同种武器不重复给予，背包满时掉落在脚下）。
+每位女神有一把专属武器，分为 **6 个阶位（Tier）**，使用女神磁盘选定该女神后**自动获得 Tier 1**（已拥有同种武器不重复给予，背包满时掉落在脚下）。
 
-| 女神 | 武器 | 注册名 | 伤害 | 攻速 |
-| --- | --- | --- | --- | --- |
-| 原始之初 | 刺剑 | `prototype_rapier` | 5 | -1.8 |
-| 绀紫之心 | 太刀 | `purple_heart_katana` | 6 | -2.2 |
-| 圣黑之心 | 长剑 | `black_heart_longsword` | 6 | -2.4 |
-| 群白之心 | 战锤 | `white_heart_hammer` | 8 | -3.0 |
-| 翡绿之心 | 长枪 | `green_heart_spear` | 7 | -2.6 |
+| 女神 | 武器 | 注册名前缀 | 攻速特点 |
+| --- | --- | --- | --- |
+| 原始之初 | 刺剑 | `prototype_rapier_tier<N>` | 最快 |
+| 绀紫之心 | 太刀 | `neptune_sword_tier<N>` | 较快 |
+| 圣黑之心 | 长剑 | `noire_sword_tier<N>` | 标准 |
+| 群白之心 | 战锤 | `blanc_hammer_tier<N>` | 最慢 |
+| 翡绿之心 | 长枪 | `vert_spear_tier<N>` | 偏慢 |
 
-- 全部为钻石品质（耐久 1561），数值以原版钻石剑 / 钻石斧为基准。
-- 武器同时出现在 **Neptunia 创造标签页**，因此原版创造搜索与 JEI 均可检索；后续新增合成配方会正常展示（未做隐藏处理）。
+### 伤害阶梯 / Damage Ladder
+
+| Tier | 总伤害 | 说明 |
+| --- | --- | --- |
+| 1 | 7 | 铁剑级别以上（铁剑 6） |
+| 2 | 8 | 钻石剑级别以上（钻石剑 7） |
+| 3 | 12 | 前阶 ×1.5 |
+| 4 | 18 | 前阶 ×1.5 |
+| 5 | 27 | 前阶 ×1.5 |
+| 6 | 54 | **最终武器**（前阶 ×2，为挑战最终 Boss 设计） |
+
+- 攻速随阶位缓降，并按武器类型差异化（刺剑 2.0 → 战锤 1.0）。
+- **完整数值表（30 件）见 `tools/weapon_tiers.csv`**（UTF-8 带 BOM，Excel 直接打开）。
+- 全部为钻石品质，伪耐久条机制与 Tier 无关（见下）。
+- 武器同时出现在 **Neptunia 创造标签页**，原版创造搜索与 JEI 均可检索；后续合成配方会正常展示（未做隐藏处理）。
 
 ### 伪耐久条 / Pseudo-Durability
 
@@ -205,10 +218,12 @@ py tools/resize_texture.py <原图.png> <输出路径.png> 512 512
 
 ### 模型与贴图 / Model & Texture
 
-- 模型：`item/handheld`（MC 原版手持模型，剑 / 斧 / 枪共用同一父模型），**无需为不同武器类型单独建模型**。
-- 贴图：**16×16 正方形 PNG，透明背景**，放在 `textures/item/<注册名>.png`，同名覆盖即可生效。
+- 模型：由 `py tools/generate_weapon_models.py [厚度]` 统一生成（`item/handheld` 父模型 + 带厚度的薄板 elements，默认 0.5 模型单位 ≈ 0.03 方块，六个面均显式映射），**无需为不同武器类型单独建模型**。挥砍动作即原版手臂动画，第一 / 第三人称自动生效，无需额外动画文件。
+- 贴图：**正方形 PNG，透明背景**（16~512 均支持，推荐 256/512 保留细节），放在 `textures/item/weapon/<注册名>.png`，同名覆盖即可生效。
 - 占位贴图可用 `py tools/generate_weapon_textures.py` 重新生成。
 - 作图要求：物品需**斜置绘制**（左下握柄 → 右上刀尖 / 锤头 / 枪尖），四周留 1 像素边距，与原版工具一致。
+- **刀刃方向**：锋利一侧须**朝向左上**（与原版剑一致，否则手持挥砍像在用刀背打人）。AI 生成图若刀刃朝向右下，运行 `py tools/mirror_weapon_texture.py <贴图.png>` 一键修正。
+- 未来计划：由建模师制作 Blockbench 模型并接入 GeckoLib，替换为真正的 3D 武器与自定义动画（当前为原版薄板模型）。
 
 ---
 
@@ -395,7 +410,10 @@ Adding a goddess requires **no new packets** — `GoddessType` syncs through the
 | `tools/generate_goddess_placeholder.py` | 生成女神立绘**占位图**（128×128，PALETTES 里加配色即可生成新女神占位） |
 | `tools/generate_disk_texture.py` | 生成/微调**女神磁盘材质**（32×32 斜角光碟，改顶部几何参数后重跑） |
 | `tools/generate_weapon_textures.py` | 生成**女神武器占位贴图**（16×16，PALETTES 里加配色 / 选形状即可生成新武器占位） |
+| `tools/remove_background.py` | **一键抠图**（去背景 + 擦除 AI 水印孤岛，输出透明 PNG）：`py tools/remove_background.py <输入图> <输出.png> 64 40`（后两个参数为尺寸与背景容差，依赖 Pillow） |
 | `tools/resize_texture.py` | 把任意 PNG **双线性插值压缩**到指定尺寸（支持 8 位 RGB/RGBA）：`py tools/resize_texture.py <输入.png> <输出.png> 512 512` |
+| `tools/mirror_weapon_texture.py` | **修正武器贴图刀刃朝向**（沿左下↔右上对角线镜像，刀刃/刀背互换到原版方向）：`py tools/mirror_weapon_texture.py <贴图.png>`，省略输出路径则原地覆盖（依赖 Pillow） |
+| `tools/generate_weapon_models.py` | 生成**武器物品模型**（带厚度的薄板，默认 0.5 模型单位，六面显式 UV）：`py tools/generate_weapon_models.py [厚度]`，不传则用默认值 |
 
 ---
 

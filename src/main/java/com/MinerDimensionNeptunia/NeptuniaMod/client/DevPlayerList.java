@@ -24,7 +24,7 @@ import java.util.Set;
 public class DevPlayerList {
     private static final Path FILE =
             FMLPaths.CONFIGDIR.get().resolve("miner_dimension_neptunia_dev_players.json");
-    private static final String[] DEFAULT_NAMES = {"dev", "xenodomc"};
+    private static final String[] DEFAULT_NAMES = {"dev", "xenodomc", "lionhurt"};
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private DevPlayerList() {
