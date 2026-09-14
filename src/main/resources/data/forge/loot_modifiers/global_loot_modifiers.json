@@ -1,6 +1,11 @@
 {
   "replace": false,
   "entries": [
-    "miner_dimension_neptunia:goddess_disk_in_end_city"
+    "miner_dimension_neptunia:goddess_disk_gen1_dungeon",
+    "miner_dimension_neptunia:goddess_disk_gen1_mineshaft",
+    "miner_dimension_neptunia:goddess_disk_gen1_desert",
+    "miner_dimension_neptunia:goddess_disk_gen2_fortress",
+    "miner_dimension_neptunia:goddess_disk_gen2_bastion",
+    "miner_dimension_neptunia:goddess_disk_gen4_end_city"
   ]
 }

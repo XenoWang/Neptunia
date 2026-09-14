@@ -20,9 +20,16 @@ public class ModCreativeTabs {
     public static final RegistryObject<CreativeModeTab> NEPTUNIA_TAB = CREATIVE_TABS.register("neptunia",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.miner_dimension_neptunia"))
-                    .icon(() -> new ItemStack(Neptunia.GODDESS_DISK.get()))
+                    .icon(() -> new ItemStack(Neptunia.GODDESS_DISK_GEN1.get()))
                     .displayItems((parameters, output) -> {
-                        output.accept(Neptunia.GODDESS_DISK.get());
+                        // 女神磁盘（Gen1~Gen5）
+                        for (var disk : Neptunia.GODDESS_DISKS) {
+                            output.accept(disk.get());
+                        }
+                        // 光碟刻印装置（MK1~MK5）
+                        for (var unit : Neptunia.ENGRAVE_UNITS) {
+                            output.accept(unit.get());
+                        }
                         // 女神武器（5 位女神 × 6 阶）
                         for (var weapon : Neptunia.ALL_GODDESS_WEAPONS) {
                             output.accept(weapon.get());

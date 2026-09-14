@@ -4,10 +4,13 @@ import com.MinerDimensionNeptunia.NeptuniaMod.Neptunia;
 import com.MinerDimensionNeptunia.NeptuniaMod.capability.GoddessCapabilityProvider;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessFlightHandler;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessAbilitySyncPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
+import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessDiskGen;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -43,9 +46,24 @@ public class GoddessCommand {
                                                             }
                                                             return builder.buildFuture();
                                                         })
+                                                        // 不带世代参数：默认 Gen5（满额）
                                                         .executes(ctx -> addGoddess(ctx,
                                                                 EntityArgument.getPlayer(ctx, "player"),
-                                                                StringArgumentType.getString(ctx, "type"))))))));
+                                                                StringArgumentType.getString(ctx, "type"),
+                                                                GoddessDiskGen.GEN1))
+                                                        // 可选世代参数 1~5
+                                                        .then(Commands.argument("gen", IntegerArgumentType.integer(1, 5))
+                                                                .suggests((ctx, builder) -> {
+                                                                    for (int i = 1; i <= 5; i++) {
+                                                                        builder.suggest(String.valueOf(i));
+                                                                    }
+                                                                    return builder.buildFuture();
+                                                                })
+                                                                .executes(ctx -> addGoddess(ctx,
+                                                                        EntityArgument.getPlayer(ctx, "player"),
+                                                                        StringArgumentType.getString(ctx, "type"),
+                                                                        GoddessDiskGen.values()[IntegerArgumentType
+                                                                                .getInteger(ctx, "gen") - 1]))))))));
     }
 
     // 清除女神化能力（可指定玩家）
@@ -64,20 +82,22 @@ public class GoddessCommand {
             cap.setAbility(false);
             cap.setTransformStartTime(0);
             cap.setGoddessType(GoddessType.NONE);
-            // 清除缓存
-            Neptunia.updatePlayerCache(target.getUUID(), false, GoddessType.NONE, 0);
+            // 移除变身飞行（创造/旁观模式玩家不受影响）
+            GoddessFlightHandler.revokeFlight(target);
+            // 更新缓存（死亡→重生恢复用；清除状态会移除缓存）
+            Neptunia.updatePlayerCache(target.getUUID(), false, GoddessType.NONE, cap.getDiskGen(), 0);
             // 同步给客户端
             Neptunia.CHANNEL.send(
                     PacketDistributor.PLAYER.with(() -> target),
-                    new GoddessAbilitySyncPacket(false, 0, GoddessType.NONE));
+                    new GoddessAbilitySyncPacket(false, 0, GoddessType.NONE, cap.getDiskGen()));
             source.sendSuccess(() -> Component.literal("已清除 " + target.getName().getString() + " 的女神化能力！"), true);
         });
         return 1;
     }
 
-    // 添加女神化能力（可指定玩家和女神类型）
-    private static int addGoddess(CommandContext<CommandSourceStack> ctx, ServerPlayer target, String typeName)
-            throws CommandSyntaxException {
+    // 添加女神化能力（可指定玩家、女神类型与磁盘世代 1~5）
+    private static int addGoddess(CommandContext<CommandSourceStack> ctx, ServerPlayer target, String typeName,
+                                  GoddessDiskGen gen) throws CommandSyntaxException {
         CommandSourceStack source = ctx.getSource();
         // 解析女神类型
         GoddessType type = GoddessType.fromName(typeName);
@@ -97,18 +117,21 @@ public class GoddessCommand {
                     TransformRequestPacket.applyGoddessBoost(target, oldGoddess, false);
                 }
             }
-            // 如果已有能力，覆盖（赋予新类型）
+            // 如果已有能力，覆盖（赋予新类型与世代）
             cap.setAbility(true);
             cap.setGoddessType(type);
+            cap.setDiskGen(gen);
             cap.setTransformStartTime(0); // 重置变身时间（如果正在变身会立即解除）
-            // 更新缓存
-            Neptunia.updatePlayerCache(target.getUUID(), true, type, 0);
-            // 同步给客户端
+            // 正在变身时被覆盖：移除变身飞行（创造/旁观模式玩家不受影响）
+            GoddessFlightHandler.revokeFlight(target);
+            // 更新缓存（死亡→重生恢复用）
+            Neptunia.updatePlayerCache(target.getUUID(), true, type, gen, 0);
+            // 同步给客户端（含世代，客户端倒计时时长随世代变化）
             Neptunia.CHANNEL.send(
                     PacketDistributor.PLAYER.with(() -> target),
-                    new GoddessAbilitySyncPacket(true, 0, type));
+                    new GoddessAbilitySyncPacket(true, 0, type, gen));
             source.sendSuccess(() -> Component.literal("已为 " + target.getName().getString() +
-                    " 添加女神化能力，类型: " + type.name()), true);
+                    " 添加女神化能力，类型: " + type.name() + "，世代: " + gen.name()), true);
         });
         return 1;
     }

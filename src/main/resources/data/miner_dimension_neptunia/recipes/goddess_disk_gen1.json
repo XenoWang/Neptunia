@@ -1,0 +1,23 @@
+{
+  "type": "miner_dimension_neptunia:goddess_disk",
+  "category": "misc",
+  "pattern": [
+    " A ",
+    "GDG",
+    " G "
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    },
+    "D": {
+      "item": "miner_dimension_neptunia:engrave_unit_mk1"
+    }
+  },
+  "result": {
+    "item": "miner_dimension_neptunia:goddess_disk_gen1"
+  }
+}

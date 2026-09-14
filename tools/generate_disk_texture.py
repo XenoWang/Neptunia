@@ -6,22 +6,36 @@
 样式：光碟沿左下角↔右上角对角斜放，盘面清晰可见，
 带中心圆孔、彩虹反光环带、底部薄边和投影阴影。
 
-用法：
-    py tools/generate_disk_texture.py
+各世代色泽：Gen1 纯银无色泽，世代越高彩虹反光越丰富（Gen5 最饱满）。
+    世代   色泽混合度   饱和度
+    Gen1   0.0         0.0   普通光碟
+    Gen2   0.30        0.35
+    Gen3   0.55        0.45
+    Gen4   0.80        0.55
+    Gen5   1.0         0.65   色泽最丰满
 
-输出：src/main/resources/assets/miner_dimension_neptunia/textures/item/goddess_disk.png
+用法：
+    py tools/generate_disk_texture.py        # 生成全部 5 个世代
+    py tools/generate_disk_texture.py 3      # 只生成指定世代（1~5）
+
+输出：textures/item/important_item/goddess_disk_gen1.png ~ gen5.png
 """
 
 import math
 import os
 import struct
+import sys
 import zlib
 
 SIZE = 32          # 输出尺寸 32x32
 SS = 3             # 每像素 3x3 超采样抗锯齿
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
                        "src", "main", "resources", "assets",
-                       "miner_dimension_neptunia", "textures", "item")
+                       "miner_dimension_neptunia", "textures", "item", "important_item")
+
+# ---- 各世代色泽参数（混合度 = 彩虹色混入盘面的比例，饱和度 = 彩虹饱和度） ----
+GEN_TINTS = [0.0, 0.30, 0.55, 0.80, 1.0]
+GEN_SATS = [0.0, 0.35, 0.45, 0.55, 0.65]
 
 # ---- 光碟几何：盘面沿左下角↔右上角对角斜放 ----
 CX, CY = 15.5, 16.0        # 盘面中心
@@ -54,8 +68,8 @@ def to_local(x, y, cx, cy):
     return lx, ly
 
 
-def disc_color(x, y):
-    """返回 (r, g, b, a)"""
+def disc_color(x, y, tint, sat):
+    """返回 (r, g, b, a)；tint=彩虹混入比例(0=纯银)，sat=彩虹饱和度"""
     # ---- 盘面 ----
     lx, ly = to_local(x, y, CX, CY)
     r2 = (lx / RX) ** 2 + (ly / RY) ** 2
@@ -79,10 +93,10 @@ def disc_color(x, y):
             return (0xB0, 0xB0, 0xBA, 255)  # 轮毂边缘环
 
         if r <= 0.80:
-            # 彩虹反光带（柔和：与银色混合）
+            # 彩虹反光带：按世代混合度与银色底混合（Gen1 纯银无色泽）
             hue = (angle / (2 * math.pi) + 0.5) % 1.0
-            rainbow = hsv_to_rgb(hue, 0.50, 0.98)
-            color = [int(c * 0.42 + s * 0.58) for c, s in zip(rainbow, (0xDF, 0xDF, 0xE6))]
+            rainbow = hsv_to_rgb(hue, sat, 0.98)
+            color = [int(c * tint + s * (1 - tint)) for c, s in zip(rainbow, (0xDF, 0xDF, 0xE6))]
 
             # 顶侧（ly<0 一侧）柔和白色高光
             top_light = max(0.0, -ly / RY) * 0.35
@@ -118,12 +132,12 @@ def disc_color(x, y):
     return (0, 0, 0, 0)  # 透明
 
 
-def sample(x, y):
+def sample(x, y, tint, sat):
     """3x3 超采样"""
     rs = gs = bs = as_ = 0
     for i in range(SS):
         for j in range(SS):
-            r, g, b, a = disc_color(x + (i + 0.5) / SS, y + (j + 0.5) / SS)
+            r, g, b, a = disc_color(x + (i + 0.5) / SS, y + (j + 0.5) / SS, tint, sat)
             rs += r * a
             gs += g * a
             bs += b * a
@@ -150,8 +164,20 @@ def make_png(size, pixel_fn):
 
 
 if __name__ == "__main__":
+    # 可选参数：只生成指定世代（1~5），不传则生成全部
+    gens = range(1, 6)
+    if len(sys.argv) > 1:
+        g = int(sys.argv[1])
+        if not 1 <= g <= 5:
+            print("[错误] 世代参数需为 1~5")
+            sys.exit(1)
+        gens = [g]
+
     os.makedirs(OUT_DIR, exist_ok=True)
-    path = os.path.join(OUT_DIR, "goddess_disk.png")
-    with open(path, "wb") as f:
-        f.write(make_png(SIZE, sample))
-    print("[OK] 已生成女神磁盘材质: " + path)
+    for g in gens:
+        tint = GEN_TINTS[g - 1]
+        sat = GEN_SATS[g - 1]
+        path = os.path.join(OUT_DIR, "goddess_disk_gen%d.png" % g)
+        with open(path, "wb") as f:
+            f.write(make_png(SIZE, lambda x, y: sample(x, y, tint, sat)))
+        print("[OK] Gen%d (tint=%.2f, sat=%.2f) -> %s" % (g, tint, sat, path))

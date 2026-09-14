@@ -56,7 +56,7 @@ src/main/java/com/MinerDimensionNeptunia/NeptuniaMod/
 │   ├── ingredient/  #   材料类物品（合成 / 升级素材）
 │   ├── usable/      #   可使用物品（右键触发效果，如女神磁盘）
 │   └── weapon/      #   女神专属武器与伪耐久逻辑
-├── loot/            # 战利品修改器注册（末地城宝箱注入女神磁盘）
+├── loot/            # 战利品修改器注册（按维度向宝箱注入各世代女神磁盘）
 ├── network/         # 网络同步包（变身请求 / 类型选择 / 能力同步）
 ├── recipe/          # 自定义配方序列化器（女神磁盘隐藏合成配方）
 └── util/            # 工具类（GoddessType 枚举）
@@ -72,7 +72,7 @@ src/main/resources/
 ├── data/
 │   ├── forge/loot_modifiers/       # 战利品修改器启用列表
 │   └── miner_dimension_neptunia/
-│       ├── loot_modifiers/         # 战利品修改器配置（末地城宝箱）
+│       ├── loot_modifiers/         # 战利品修改器配置（各维度宝箱 × 各世代磁盘）
 │       └── recipes/                # 合成配方
 └── META-INF/        # mods.toml 等模组元数据
 
@@ -122,34 +122,78 @@ Key press 玩家按键 (KeyBindings)
 
 ## Goddess Disk 女神磁盘
 
-### 获取方式 / Acquisition
+女神磁盘分为 **5 个世代（Gen1~Gen5）**，世代决定**女神化后的属性强弱**，也决定获取维度。
+选定女神后**消耗 1 张**对应世代的磁盘；已拥有能力的玩家可再次使用磁盘**重新选择女神**（更换女神/世代，会先移除旧加成与飞行、结束当前变身，数值不会叠加）。
 
-| 方式 | 说明 |
+### 世代与获取 / Gens & Acquisition
+
+| 世代 | 获取来源 | 属性强弱 |
+| --- | --- | --- |
+| Gen1 | 主世界宝箱（地牢 2% / 废弃矿井 2% / 沙漠神殿 3%，低概率） | 最弱 |
+| Gen2 | 下界宝箱（要塞 6% / 堡垒遗迹 10%） | 中等偏弱 |
+| Gen3 | 预留：未来新维度的结构宝箱 | 中等 |
+| Gen4 | 末地城宝箱（**35%**） | 较强 |
+| Gen5 | 预留：未来新维度的结构宝箱 | 满额 |
+
+- 各掉落概率与注入目标在 `data/miner_dimension_neptunia/loot_modifiers/` 下按维度分文件配置，启用列表见 `data/forge/loot_modifiers/global_loot_modifiers.json`。
+- Gen3 / Gen5 物品已注册（创造模式可取），新维度做好后加一份战利品修改器 JSON 即可。
+
+### 属性强弱 / Stat Scaling
+
+- 注册中心的属性倍率视为 **Gen5 满额数值**，实际倍率 = `1 + (注册值 − 1) × 世代系数`。
+- 世代系数：Gen1 0.15 → Gen5 1.0（Prototype 的实际倍率即 ×1.3 / 1.7 / 2.0 / 2.5 / 3.0）。
+- 世代记录在玩家能力中（`disk_gen` NBT），每次应用加成前仍会**先清除全部旧加成**，不会叠加。
+
+### 变身时长 / Transform Duration
+
+| 世代 | 时长 |
 | --- | --- |
-| 末地城宝箱 | **35%** 概率开出 1 个（`data/miner_dimension_neptunia/loot_modifiers/goddess_disk_in_end_city.json` 可调概率与数量） |
-| 合成 | 隐藏配方，见下表（**不在配方书 / JEI 中展示**，但可以正常合成） |
+| Gen1 | 1 分钟 |
+| Gen2 | 3 分钟 |
+| Gen3 | 6 分钟 |
+| Gen4 | 12 分钟 |
+| Gen5 | 30 分钟 |
+
+- 时长定义在 `GoddessDiskGen` 枚举（`getTransformDurationSeconds()`），客户端倒计时 / HUD 进度 / 登录兜底统一按世代读取。
+- 倒计时归零由客户端通知服务端解除变身。
+
+### 变身飞行 / Flight（Gen4 / Gen5）
+
+- **Gen4**：变身期间获得创造飞行。
+- **Gen5**：飞行 + 飞行速度 ×1.5（0.05 × 1.5 = 0.075）。
+- 飞行状态跟随变身：变身开始授予（`GoddessFlightHandler#grantFlight`），结束/死亡时移除（`revokeFlight`）。
+- **切换维度自动恢复**：服务端每 tick 保活校验，维度切换重置 abilities 后下一 tick 即恢复。
+- **不误伤创造/旁观玩家**：移除飞行时跳过这两种模式（只恢复默认速度）。
+- 变身状态与磁盘世代通过 `PlayerEvent.Clone` 跨死亡/维度复制；死亡重生会结束变身（移除加成与飞行），能力本身保留。
 
 ### 合成配方 / Crafting Recipe（隐藏）
 
-```
-  空    下界之星     空
- 信标   任意唱片   绿宝石块
-  空   下界合金锭    空
-```
+每个世代一条隐藏配方，材料为该维度特色 + **对应世代的刻印装置**（配方中心）：
 
-- "任意唱片" = 任意原版音乐唱片（`#minecraft:music_discs` 标签）。
-- 配方对配方书与 JEI 隐藏，但不影响正常合成。
+| 世代 | 布局（中心 = 刻印装置） | 材料 |
+| --- | --- | --- |
+| Gen1 | 紫水晶顶 + 金锭左右下 | 主世界 |
+| Gen2 | 石英顶 + 烈焰粉左右 + 萤石粉下 | 下界 |
+| Gen4 | 龙息顶 + 紫颂果左右 + 爆裂紫颂果下 | 末地 |
 
-> 该配方同时作为**保底获取途径**（防止测试时在末地城宝箱找不到）。
+- Gen3 / Gen5 的配方待对应维度确定后再添加。
+- 全部配方对配方书与 JEI 隐藏，但不影响正常合成（`isSpecial` + JEI `hideRecipes`）。
+
+### 刻印装置 / Engrave Unit（MK1~MK5）
+
+- 女神磁盘隐藏配方的**中心关键道具**，按世代对应（MK1 → Gen1 配方，以此类推）。
+- **耐久条 = 刻印次数（10 次）**：每合成一次消耗 1 次，次数用完装置直接消失（原版"合成剩余物品"机制）。
+- 后续规划：按维度由特定怪物掉落、更多用途（装备升级等）。
 
 ### 材质 / Texture
 
-- 物品贴图：`assets/miner_dimension_neptunia/textures/item/goddess_disk.png`（32×32 斜角光碟）。
-- 可用 `tools/generate_disk_texture.py` 重新生成/微调。
+- 物品贴图：`textures/item/important_item/goddess_disk_gen1~5.png`（32×32 斜角光碟）。
+- Gen1 纯银无色泽，世代越高彩虹反光越丰富（Gen5 最饱满）。
+- 可用 `py tools/generate_disk_texture.py` 重新生成全部（或 `py tools/generate_disk_texture.py 3` 只生成指定世代）。
 
 ### 创造模式 / Creative
 
-- 模组注册了 **Neptunia** 创造标签页，女神磁盘可在创造模式物品栏直接搜索获取（同时也是 JEI 物品列表的数据来源）。
+- 模组注册了 **Neptunia** 创造标签页，全部 5 个世代磁盘可在创造模式物品栏直接搜索获取（同时也是 JEI 物品列表的数据来源）。
 
 ---
 
@@ -231,7 +275,7 @@ py tools/resize_texture.py <原图.png> <输出路径.png> 512 512
 
 - 通过 `compat/` 下的 JEI 插件实现（**未安装 JEI 时相关类不会被加载**，零影响）。
 - **隐藏**女神磁盘的合成配方。
-- 女神磁盘显示信息页提示：*"Can be found in End City treasure chests."*（`lang/en_us.json` 的 `jei.miner_dimension_neptunia.goddess_disk.info`）。
+- 每个世代的磁盘显示各自的获取来源提示（`lang/en_us.json` 的 `jei.miner_dimension_neptunia.goddess_disk_genN.info`）。
 - 物品本身可通过名字或 `@miner_dimension_neptunia` 在 JEI 中搜索到。
 
 ---
@@ -244,9 +288,9 @@ All commands require **OP level 2** (`/op <player>`).
 | --- | --- |
 | `/neptunia goddess clear` | Clear your own goddess ability 清除自己的女神化能力 |
 | `/neptunia goddess clear <player>` | Clear a target player's goddess ability 清除指定玩家的女神化能力 |
-| `/neptunia goddess add <player> <type>` | Add goddess ability to a target player 为指定玩家添加女神化能力 |
+| `/neptunia goddess add <player> <type> [gen]` | Add goddess ability to a target player 为指定玩家添加女神化能力（`gen` 为磁盘世代 1~5，可省略，默认 Gen5） |
 
-可用类型 `type`：`prototype`、`purple_heart`、`black_heart`、`white_heart`、`green_heart`（Tab 自动补全）。
+可用类型 `type`：`prototype`、`purple_heart`、`black_heart`、`white_heart`、`green_heart`（Tab 自动补全）；`gen` 同样支持 Tab 自动补全。
 
 > 在目标玩家**正在变身时**执行 `add` 会先移除旧女神的属性加成，再切换类型，不会叠加乘区。
 
@@ -332,7 +376,7 @@ All UI code lives in `client/gui/`:
 
 | File 文件 | Responsibility 职责 |
 | --- | --- |
-| `client/gui/GoddessHudRenderer.java` | In-game HUD: transformation bar position, size, animation, text 女神化条的位置、尺寸、动画、文字渲染 |
+| `client/gui/GoddessHudRenderer.java` | In-game HUD: Neptunia HDD-gauge style segmented bar (position, size, animation, text) 海王星 HDD 槽风格的分段能量读条（位置、尺寸、动画、文字） |
 | `client/gui/GoddessSelectionScreen.java` | 卡牌式女神选择界面：布局（每行最多 4 张自动换行）、字号档位、悬停高亮 |
 | `client/gui/ModConfigScreen.java` | ★ Main config screen: displays a list of config modules 配置主界面：显示配置模块列表 |
 | `client/gui/config/ConfigModule.java` | ★ Interface for config modules 配置模块接口 |
@@ -408,7 +452,8 @@ Adding a goddess requires **no new packets** — `GoddessType` syncs through the
 | Script 脚本 | Usage 用途 |
 | --- | --- |
 | `tools/generate_goddess_placeholder.py` | 生成女神立绘**占位图**（128×128，PALETTES 里加配色即可生成新女神占位） |
-| `tools/generate_disk_texture.py` | 生成/微调**女神磁盘材质**（32×32 斜角光碟，改顶部几何参数后重跑） |
+| `tools/generate_disk_texture.py` | 生成/微调**女神磁盘材质**（32×32 斜角光碟，Gen1 纯银 → Gen5 彩虹满色泽）：`py tools/generate_disk_texture.py` 生成全部，或加 1~5 只生成指定世代 |
+| `tools/generate_engrave_unit_texture.py` | 生成**光碟刻印装置材质**（64×64，LightScribe 光雕机造型，MK1 指示灯全灭 → MK5 三灯全亮且盘面最鲜艳）：`py tools/generate_engrave_unit_texture.py`，或加 1~5 只生成指定世代 |
 | `tools/generate_weapon_textures.py` | 生成**女神武器占位贴图**（16×16，PALETTES 里加配色 / 选形状即可生成新武器占位） |
 | `tools/remove_background.py` | **一键抠图**（去背景 + 擦除 AI 水印孤岛，输出透明 PNG）：`py tools/remove_background.py <输入图> <输出.png> 64 40`（后两个参数为尺寸与背景容差，依赖 Pillow） |
 | `tools/resize_texture.py` | 把任意 PNG **双线性插值压缩**到指定尺寸（支持 8 位 RGB/RGBA）：`py tools/resize_texture.py <输入.png> <输出.png> 512 512` |

@@ -28,7 +28,12 @@ import java.util.List;
 @JeiPlugin
 public class NeptuniaJeiPlugin implements IModPlugin {
     public static final ResourceLocation UID = new ResourceLocation(Neptunia.MODID, "jei_plugin");
-    private static final ResourceLocation GODDESS_DISK_RECIPE_ID = new ResourceLocation(Neptunia.MODID, "goddess_disk");
+
+    /** 需要从 JEI 中隐藏的磁盘合成配方（Gen3 / Gen5 暂无配方） */
+    private static final List<ResourceLocation> HIDDEN_DISK_RECIPE_IDS = List.of(
+            new ResourceLocation(Neptunia.MODID, "goddess_disk_gen1"),
+            new ResourceLocation(Neptunia.MODID, "goddess_disk_gen2"),
+            new ResourceLocation(Neptunia.MODID, "goddess_disk_gen4"));
 
     private static IJeiRuntime runtime;
 
@@ -44,17 +49,22 @@ public class NeptuniaJeiPlugin implements IModPlugin {
 
     @Override
     public void registerExtraIngredients(IExtraIngredientRegistration registration) {
-        // 女神磁盘不在任何创造模式标签页中，JEI 默认不会显示它；
-        // 手动注册为额外物品，保证在 JEI 中可以被搜索到（配方仍然隐藏）
-        registration.addExtraItemStacks(List.of(new ItemStack(Neptunia.GODDESS_DISK.get())));
+        // 双保险：磁盘虽在创造标签页中，仍手动注册一次，保证 JEI 必然能搜到
+        List<ItemStack> disks = new java.util.ArrayList<>();
+        for (var disk : Neptunia.GODDESS_DISKS) {
+            disks.add(new ItemStack(disk.get()));
+        }
+        registration.addExtraItemStacks(disks);
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        // 女神磁盘的信息提示：默认可在末地城宝箱中找到
-        registration.addItemStackInfo(
-                new ItemStack(Neptunia.GODDESS_DISK.get()),
-                Component.translatable("jei.miner_dimension_neptunia.goddess_disk.info"));
+        // 每个世代的磁盘显示各自的获取来源提示
+        for (var disk : Neptunia.GODDESS_DISKS) {
+            registration.addItemStackInfo(
+                    new ItemStack(disk.get()),
+                    Component.translatable("jei.miner_dimension_neptunia." + disk.getId().getPath() + ".info"));
+        }
     }
 
     @Override
@@ -75,10 +85,16 @@ public class NeptuniaJeiPlugin implements IModPlugin {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null)
             return;
-        mc.level.getRecipeManager().byKey(GODDESS_DISK_RECIPE_ID).ifPresent(recipe -> {
-            if (recipe instanceof CraftingRecipe crafting) {
-                runtime.getRecipeManager().hideRecipes(RecipeTypes.CRAFTING, List.of(crafting));
-            }
-        });
+        List<CraftingRecipe> toHide = new java.util.ArrayList<>();
+        for (ResourceLocation id : HIDDEN_DISK_RECIPE_IDS) {
+            mc.level.getRecipeManager().byKey(id).ifPresent(recipe -> {
+                if (recipe instanceof CraftingRecipe crafting) {
+                    toHide.add(crafting);
+                }
+            });
+        }
+        if (!toHide.isEmpty()) {
+            runtime.getRecipeManager().hideRecipes(RecipeTypes.CRAFTING, toHide);
+        }
     }
 }

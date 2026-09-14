@@ -1,0 +1,26 @@
+{
+  "type": "miner_dimension_neptunia:goddess_disk",
+  "category": "misc",
+  "pattern": [
+    " Q ",
+    "BDB",
+    " G "
+  ],
+  "key": {
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "B": {
+      "item": "minecraft:blaze_powder"
+    },
+    "G": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "D": {
+      "item": "miner_dimension_neptunia:engrave_unit_mk2"
+    }
+  },
+  "result": {
+    "item": "miner_dimension_neptunia:goddess_disk_gen2"
+  }
+}

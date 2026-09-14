@@ -1,0 +1,16 @@
+{
+  "type": "miner_dimension_neptunia:goddess_disk",
+  "conditions": [
+    {
+      "condition": "forge:loot_table_id",
+      "loot_table_id": "minecraft:chests/nether_bridge"
+    }
+  ],
+  "item": {
+    "id": "miner_dimension_neptunia:goddess_disk_gen2",
+    "Count": 1
+  },
+  "chance": 0.06,
+  "min": 1,
+  "max": 1
+}

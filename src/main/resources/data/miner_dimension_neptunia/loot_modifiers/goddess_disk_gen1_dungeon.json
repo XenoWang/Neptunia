@@ -1,0 +1,16 @@
+{
+  "type": "miner_dimension_neptunia:goddess_disk",
+  "conditions": [
+    {
+      "condition": "forge:loot_table_id",
+      "loot_table_id": "minecraft:chests/simple_dungeon"
+    }
+  ],
+  "item": {
+    "id": "miner_dimension_neptunia:goddess_disk_gen1",
+    "Count": 1
+  },
+  "chance": 0.02,
+  "min": 1,
+  "max": 1
+}

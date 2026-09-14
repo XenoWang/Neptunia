@@ -5,6 +5,8 @@ import com.MinerDimensionNeptunia.NeptuniaMod.capability.GoddessCapabilityProvid
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
 import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessDiskItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessFlightHandler;
+import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessDiskGen;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -18,17 +20,22 @@ import java.util.function.Supplier;
 
 public class GoddessTypeSelectPacket {
     private final GoddessType selectedType;
+    private final GoddessDiskGen gen;
 
-    public GoddessTypeSelectPacket(GoddessType type) {
+    public GoddessTypeSelectPacket(GoddessType type, GoddessDiskGen gen) {
         this.selectedType = type;
+        this.gen = gen;
     }
 
     public static void encode(GoddessTypeSelectPacket msg, FriendlyByteBuf buf) {
         buf.writeUtf(msg.selectedType.name());
+        buf.writeUtf(msg.gen.name());
     }
 
     public static GoddessTypeSelectPacket decode(FriendlyByteBuf buf) {
-        return new GoddessTypeSelectPacket(GoddessType.fromName(buf.readUtf()));
+        return new GoddessTypeSelectPacket(
+                GoddessType.fromName(buf.readUtf()),
+                GoddessDiskGen.fromName(buf.readUtf()));
     }
 
     public static void handle(GoddessTypeSelectPacket msg, Supplier<NetworkEvent.Context> ctx) {
@@ -46,52 +53,61 @@ public class GoddessTypeSelectPacket {
             }
 
             player.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
-                // ⭐ 新增：如果已拥有能力，拒绝处理（防止作弊/重复使用）
-                if (cap.getAbility()) {
-                    player.sendSystemMessage(Component.literal("你已经拥有女神化的能力了！"));
-                    return;
+                boolean wasSelected = cap.getAbility();
+
+                // 若正在变身，先移除旧女神的属性加成与飞行（先清后写，绝不叠加），
+                // 并结束本次变身（重新选择后需再按变身键）
+                if (cap.getTransformStartTime() > 0) {
+                    Goddess oldGoddess = GoddessRegistry.getInstance().getGoddess(cap.getGoddessType());
+                    if (oldGoddess != null) {
+                        TransformRequestPacket.applyGoddessBoost(player, oldGoddess, false);
+                    }
+                    cap.setTransformStartTime(0);
+                    GoddessFlightHandler.revokeFlight(player);
                 }
 
-                // 未拥有能力，正常处理
+                // 覆盖为新选择的女神与世代
                 cap.setAbility(true);
                 cap.setGoddessType(msg.selectedType);
-                cap.setTransformStartTime(0);
-                consumeGoddessDisk(player);
+                cap.setDiskGen(msg.gen);
 
-                // 给予该女神的默认武器
+                // 消耗 1 张本次使用的世代磁盘
+                consumeGoddessDisk(player, msg.gen);
+
+                // 给予该女神的默认武器（已拥有则不重复给）
                 Goddess goddess = GoddessRegistry.getInstance().getGoddess(msg.selectedType);
                 if (goddess != null) {
                     giveStarterWeapon(player, goddess);
                 }
 
-                // 更新服务端缓存
-                Neptunia.updatePlayerCache(
-                        player.getUUID(),
-                        cap.getAbility(),
-                        cap.getGoddessType(),
-                        cap.getTransformStartTime()
-                );
+                // 更新缓存（死亡→重生恢复用）
+                Neptunia.updatePlayerCache(player.getUUID(), cap.getAbility(), msg.selectedType, msg.gen,
+                        cap.getTransformStartTime());
 
-                // 同步给客户端
+                // 同步给客户端（含磁盘世代，客户端倒计时时长随世代变化）
                 Neptunia.CHANNEL.send(
                         PacketDistributor.PLAYER.with(() -> player),
                         new GoddessAbilitySyncPacket(
                                 cap.getAbility(),
                                 cap.getTransformStartTime(),
-                                msg.selectedType
+                                msg.selectedType,
+                                msg.gen
                         )
                 );
 
-                player.sendSystemMessage(Component.literal("你获得了女神化的能力，并选择了 " + msg.selectedType.name()));
+                player.sendSystemMessage(Component.literal(wasSelected
+                        ? "你重新选择了女神：" + msg.selectedType.name() + "（世代 " + msg.gen.name() + "）"
+                        : "你获得了女神化的能力，并选择了 " + msg.selectedType.name()));
             });
         });
         context.setPacketHandled(true);
     }
 
-    private static void consumeGoddessDisk(ServerPlayer player) {
+    /** 消耗 1 张指定世代的女神磁盘（选择女神后扣除） */
+    private static void consumeGoddessDisk(ServerPlayer player, GoddessDiskGen gen) {
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
-            if (stack.getItem() instanceof GoddessDiskItem) {
+            if (stack.getItem() instanceof GoddessDiskItem disk && disk.getGen() == gen) {
                 stack.shrink(1);
                 if (stack.isEmpty()) {
                     player.getInventory().setItem(i, ItemStack.EMPTY);

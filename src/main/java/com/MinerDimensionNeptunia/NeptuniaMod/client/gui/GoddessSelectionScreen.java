@@ -5,6 +5,7 @@ import com.MinerDimensionNeptunia.NeptuniaMod.client.DevPlayerList;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessTypeSelectPacket;
+import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessDiskGen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -54,8 +55,12 @@ public class GoddessSelectionScreen extends Screen {
     private static final int DESC_TEXT = 0xFFE9DFC7;
     private static final int HOVER_OVERLAY = 0x22FFFFFF;
 
-    public GoddessSelectionScreen() {
+    /** 本次选择所用的女神磁盘世代（决定选定后的属性强弱） */
+    private final GoddessDiskGen gen;
+
+    public GoddessSelectionScreen(GoddessDiskGen gen) {
         super(Component.literal("选择女神"));
+        this.gen = gen;
     }
 
     @Override
@@ -171,7 +176,7 @@ public class GoddessSelectionScreen extends Screen {
 
         @Override
         public void onClick(double mouseX, double mouseY) {
-            Neptunia.CHANNEL.sendToServer(new GoddessTypeSelectPacket(goddess.getId()));
+            Neptunia.CHANNEL.sendToServer(new GoddessTypeSelectPacket(goddess.getId(), GoddessSelectionScreen.this.gen));
             GoddessSelectionScreen.this.onClose();
         }
 

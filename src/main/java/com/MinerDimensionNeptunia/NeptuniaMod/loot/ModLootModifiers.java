@@ -17,9 +17,9 @@ public class ModLootModifiers {
     private static final DeferredRegister<Codec<? extends IGlobalLootModifier>> LOOT_MODIFIER_SERIALIZERS =
             DeferredRegister.create(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, Neptunia.MODID);
 
-    /** 女神磁盘战利品修改器（默认注入末地城宝箱，概率等参数见 JSON 配置） */
-    public static final RegistryObject<Codec<? extends IGlobalLootModifier>> GODDESS_DISK_IN_END_CITY =
-            LOOT_MODIFIER_SERIALIZERS.register("goddess_disk_in_end_city", () -> GoddessDiskLootModifier.CODEC);
+    /** 女神磁盘战利品修改器（注入的磁盘世代 / 战利品表 / 概率等均由 JSON 实例配置） */
+    public static final RegistryObject<Codec<? extends IGlobalLootModifier>> GODDESS_DISK =
+            LOOT_MODIFIER_SERIALIZERS.register("goddess_disk", () -> GoddessDiskLootModifier.CODEC);
 
     public static void register(IEventBus modEventBus) {
         LOOT_MODIFIER_SERIALIZERS.register(modEventBus);

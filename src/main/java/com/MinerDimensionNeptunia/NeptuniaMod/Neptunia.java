@@ -6,11 +6,14 @@ import com.MinerDimensionNeptunia.NeptuniaMod.client.KeyBindings;
 import com.MinerDimensionNeptunia.NeptuniaMod.config.GoddessConfig;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.ingredient.EngraveUnitItem;
 import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessDiskItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessFlightHandler;
 import com.MinerDimensionNeptunia.NeptuniaMod.item.weapon.GoddessWeaponItem;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessAbilitySyncPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessTypeSelectPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
+import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessDiskGen;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import com.MinerDimensionNeptunia.NeptuniaMod.command.GoddessCommand;
 import com.MinerDimensionNeptunia.NeptuniaMod.item.ModCreativeTabs;
@@ -23,13 +26,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Tiers;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.client.ConfigScreenHandler;
 import com.MinerDimensionNeptunia.NeptuniaMod.client.gui.ModConfigScreen;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -53,7 +56,6 @@ public class Neptunia {
         public static final String MODID = "miner_dimension_neptunia";
         private static final Logger LOGGER = LogUtils.getLogger();
         private static final String PROTOCOL_VERSION = "1";
-        private static final int TRANSFORM_DURATION = 180;
 
         public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
                         new ResourceLocation(MODID, "main"),
@@ -63,8 +65,36 @@ public class Neptunia {
 
         public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
 
-        public static final RegistryObject<Item> GODDESS_DISK = ITEMS.register("goddess_disk",
-                        () -> new GoddessDiskItem(new Item.Properties().stacksTo(64)));
+        // ---- 女神磁盘：Gen1~Gen5（世代决定属性强弱与获取维度，使用后不消耗） ----
+        // Gen1 主世界宝箱（低概率）、Gen2 下界宝箱、Gen4 末地城宝箱；
+        // Gen3 / Gen5 预留给未来新维度的结构宝箱（物品已注册，暂无掉落来源）。
+        public static final RegistryObject<Item> GODDESS_DISK_GEN1 = ITEMS.register("goddess_disk_gen1",
+                        () -> new GoddessDiskItem(GoddessDiskGen.GEN1, new Item.Properties().stacksTo(64)));
+        public static final RegistryObject<Item> GODDESS_DISK_GEN2 = ITEMS.register("goddess_disk_gen2",
+                        () -> new GoddessDiskItem(GoddessDiskGen.GEN2, new Item.Properties().stacksTo(64)));
+        public static final RegistryObject<Item> GODDESS_DISK_GEN3 = ITEMS.register("goddess_disk_gen3",
+                        () -> new GoddessDiskItem(GoddessDiskGen.GEN3, new Item.Properties().stacksTo(64)));
+        public static final RegistryObject<Item> GODDESS_DISK_GEN4 = ITEMS.register("goddess_disk_gen4",
+                        () -> new GoddessDiskItem(GoddessDiskGen.GEN4, new Item.Properties().stacksTo(64)));
+        public static final RegistryObject<Item> GODDESS_DISK_GEN5 = ITEMS.register("goddess_disk_gen5",
+                        () -> new GoddessDiskItem(GoddessDiskGen.GEN5, new Item.Properties().stacksTo(64)));
+        public static final java.util.List<RegistryObject<Item>> GODDESS_DISKS = java.util.List.of(
+                        GODDESS_DISK_GEN1, GODDESS_DISK_GEN2, GODDESS_DISK_GEN3, GODDESS_DISK_GEN4, GODDESS_DISK_GEN5);
+
+        // ---- 光碟刻印装置：MK1~MK5（隐藏合成配方的中心关键道具，10 次刻印耐久） ----
+        // 后续规划：特定怪物掉落（按世代对应维度）。
+        public static final RegistryObject<Item> ENGRAVE_UNIT_MK1 = ITEMS.register("engrave_unit_mk1",
+                        () -> new EngraveUnitItem(new Item.Properties().stacksTo(1).durability(EngraveUnitItem.USES)));
+        public static final RegistryObject<Item> ENGRAVE_UNIT_MK2 = ITEMS.register("engrave_unit_mk2",
+                        () -> new EngraveUnitItem(new Item.Properties().stacksTo(1).durability(EngraveUnitItem.USES)));
+        public static final RegistryObject<Item> ENGRAVE_UNIT_MK3 = ITEMS.register("engrave_unit_mk3",
+                        () -> new EngraveUnitItem(new Item.Properties().stacksTo(1).durability(EngraveUnitItem.USES)));
+        public static final RegistryObject<Item> ENGRAVE_UNIT_MK4 = ITEMS.register("engrave_unit_mk4",
+                        () -> new EngraveUnitItem(new Item.Properties().stacksTo(1).durability(EngraveUnitItem.USES)));
+        public static final RegistryObject<Item> ENGRAVE_UNIT_MK5 = ITEMS.register("engrave_unit_mk5",
+                        () -> new EngraveUnitItem(new Item.Properties().stacksTo(1).durability(EngraveUnitItem.USES)));
+        public static final java.util.List<RegistryObject<Item>> ENGRAVE_UNITS = java.util.List.of(
+                        ENGRAVE_UNIT_MK1, ENGRAVE_UNIT_MK2, ENGRAVE_UNIT_MK3, ENGRAVE_UNIT_MK4, ENGRAVE_UNIT_MK5);
 
         // ---- 女神武器：5 位女神 × 6 阶 ----
         // 伤害阶梯（总伤害）：7 / 8 / 12 / 18 / 27 / 54
@@ -124,30 +154,33 @@ public class Neptunia {
                                                 new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
         }
 
+        // ---- 玩家数据缓存：死亡→重生期间保留女神化能力 ----
+        // 1.20.1 Forge 47.3.0 不会触发 PlayerEvent.Clone，死亡重生会重建玩家实体，
+        // 因此死亡时把能力数据缓存下来，重生时再恢复（磁盘世代一并保留）。
         private static final Map<UUID, SavedPlayerData> PLAYER_DATA_CACHE = new ConcurrentHashMap<>();
 
         private static class SavedPlayerData {
                 final boolean ability;
                 final GoddessType goddessType;
+                final GoddessDiskGen diskGen;
                 final long transformStartTime;
 
-                SavedPlayerData(boolean ability, GoddessType goddessType, long transformStartTime) {
+                SavedPlayerData(boolean ability, GoddessType goddessType, GoddessDiskGen diskGen,
+                                long transformStartTime) {
                         this.ability = ability;
                         this.goddessType = goddessType;
+                        this.diskGen = diskGen;
                         this.transformStartTime = transformStartTime;
                 }
         }
 
-        public static void updatePlayerCache(UUID uuid, boolean ability, GoddessType type, long startTime) {
+        public static void updatePlayerCache(UUID uuid, boolean ability, GoddessType type, GoddessDiskGen gen,
+                        long startTime) {
                 if (!ability && type == GoddessType.NONE && startTime == 0) {
                         PLAYER_DATA_CACHE.remove(uuid);
                         return;
                 }
-                PLAYER_DATA_CACHE.put(uuid, new SavedPlayerData(ability, type, startTime));
-        }
-
-        public static SavedPlayerData popPlayerCache(UUID uuid) {
-                return PLAYER_DATA_CACHE.remove(uuid);
+                PLAYER_DATA_CACHE.put(uuid, new SavedPlayerData(ability, type, gen, startTime));
         }
 
         public Neptunia() {
@@ -217,45 +250,47 @@ public class Neptunia {
                 if (event.getEntity() instanceof ServerPlayer serverPlayer) {
                         UUID uuid = serverPlayer.getUUID();
 
+                        // 服务器重启等场景下，从缓存恢复能力（含磁盘世代）
                         SavedPlayerData cached = PLAYER_DATA_CACHE.remove(uuid);
                         if (cached != null) {
                                 serverPlayer.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY)
                                                 .ifPresent(cap -> {
                                                         cap.setAbility(cached.ability);
                                                         cap.setGoddessType(cached.goddessType);
+                                                        cap.setDiskGen(cached.diskGen);
                                                         cap.setTransformStartTime(cached.transformStartTime);
                                                 });
                         }
 
                         serverPlayer.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
-                                boolean hasAbility = cap.getAbility();
-                                long startTime = cap.getTransformStartTime();
-                                GoddessType type = cap.getGoddessType();
-
-                                if (startTime > 0) {
-                                        long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-                                        if (elapsed >= TRANSFORM_DURATION) {
+                                // 变身超时兜底（时长按磁盘世代；属性修饰器不跨登录保留，此处只归零状态）
+                                if (cap.getTransformStartTime() > 0) {
+                                        long elapsed = (System.currentTimeMillis() - cap.getTransformStartTime()) / 1000;
+                                        if (elapsed >= cap.getDiskGen().getTransformDurationSeconds()) {
                                                 cap.setTransformStartTime(0);
-                                                startTime = 0;
                                         }
                                 }
 
-                                updatePlayerCache(uuid, hasAbility, type, startTime);
-
                                 CHANNEL.send(
                                                 PacketDistributor.PLAYER.with(() -> serverPlayer),
-                                                new GoddessAbilitySyncPacket(hasAbility, startTime, type));
+                                                new GoddessAbilitySyncPacket(cap.getAbility(),
+                                                                cap.getTransformStartTime(), cap.getGoddessType(),
+                                                                cap.getDiskGen()));
                         });
                 }
         }
 
+        /**
+         * 死亡时缓存能力数据（1.20.1 Forge 47.3.0 不会触发 PlayerEvent.Clone，
+         * 死亡重生会重建玩家实体，能力数据需要手动缓存，重生时恢复）。
+         */
         private void onPlayerDeath(LivingDeathEvent event) {
                 if (event.getEntity() instanceof ServerPlayer player) {
                         UUID uuid = player.getUUID();
                         player.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
                                 if (cap.getAbility() || cap.getTransformStartTime() > 0) {
                                         updatePlayerCache(uuid, cap.getAbility(), cap.getGoddessType(),
-                                                        cap.getTransformStartTime());
+                                                        cap.getDiskGen(), cap.getTransformStartTime());
                                 } else {
                                         PLAYER_DATA_CACHE.remove(uuid);
                                 }
@@ -263,6 +298,7 @@ public class Neptunia {
                 }
         }
 
+        /** 死亡重生：结束变身（移除属性加成与飞行），能力本身保留 */
         private void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
                 if (!(event.getEntity() instanceof ServerPlayer player))
                         return;
@@ -270,55 +306,35 @@ public class Neptunia {
                 UUID uuid = player.getUUID();
                 SavedPlayerData cached = PLAYER_DATA_CACHE.remove(uuid);
 
-                if (cached == null) {
+                // 从缓存恢复能力（死亡时缓存的副本）
+                if (cached != null) {
                         player.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
-                                if (cap.getTransformStartTime() > 0) {
-                                        Goddess goddess = GoddessRegistry.getInstance()
-                                                        .getGoddess(cap.getGoddessType());
-                                        if (goddess != null) {
-                                                TransformRequestPacket.applyGoddessBoost(player, goddess, false);
-                                        }
-                                        cap.setTransformStartTime(0);
-                                        CHANNEL.send(
-                                                        PacketDistributor.PLAYER.with(() -> player),
-                                                        new GoddessAbilitySyncPacket(cap.getAbility(), 0,
-                                                                        cap.getGoddessType()));
-                                }
+                                cap.setAbility(cached.ability);
+                                cap.setGoddessType(cached.goddessType);
+                                cap.setDiskGen(cached.diskGen);
                         });
-                        return;
                 }
 
                 player.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
-                        cap.setAbility(cached.ability);
-                        cap.setGoddessType(cached.goddessType);
-
-                        if (cached.transformStartTime > 0) {
-                                Goddess goddess = GoddessRegistry.getInstance().getGoddess(cached.goddessType);
+                        // 死亡结束变身：移除加成与飞行
+                        if (cap.getTransformStartTime() > 0) {
+                                Goddess goddess = GoddessRegistry.getInstance().getGoddess(cap.getGoddessType());
                                 if (goddess != null) {
                                         TransformRequestPacket.applyGoddessBoost(player, goddess, false);
                                 }
                                 cap.setTransformStartTime(0);
-                        } else {
-                                cap.setTransformStartTime(0);
+                                GoddessFlightHandler.revokeFlight(player);
                         }
-
-                        if (cap.getAbility()) {
-                                updatePlayerCache(uuid, cap.getAbility(), cap.getGoddessType(), 0);
-                        }
-
                         CHANNEL.send(
                                         PacketDistributor.PLAYER.with(() -> player),
-                                        new GoddessAbilitySyncPacket(
-                                                        cap.getAbility(),
-                                                        cap.getTransformStartTime(),
-                                                        cap.getGoddessType()));
+                                        new GoddessAbilitySyncPacket(cap.getAbility(), 0, cap.getGoddessType(),
+                                                        cap.getDiskGen()));
                 });
         }
 
         private void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
                 if (event.getEntity() instanceof ServerPlayer player) {
-                        UUID uuid = player.getUUID();
-                        PLAYER_DATA_CACHE.remove(uuid);
+                        PLAYER_DATA_CACHE.remove(player.getUUID());
                 }
         }
 

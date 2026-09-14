@@ -4,6 +4,8 @@ import com.MinerDimensionNeptunia.NeptuniaMod.Neptunia;
 import com.MinerDimensionNeptunia.NeptuniaMod.capability.GoddessCapabilityProvider;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
 import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessFlightHandler;
+import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessDiskGen;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -46,8 +48,6 @@ public class TransformRequestPacket {
                 return;
             }
 
-            UUID uuid = player.getUUID();
-
             player.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY).ifPresent(cap -> {
                 if (msg.startTransform) {
                     // 开始变身
@@ -80,15 +80,18 @@ public class TransformRequestPacket {
                     // 应用属性加成
                     applyGoddessBoost(player, goddess, true);
 
+                    // Gen4/Gen5：授予创造飞行（Gen5 飞行速度 ×1.5）
+                    GoddessFlightHandler.grantFlight(player, cap.getDiskGen());
+
                     // 调用女神的特殊效果（预留）
                     goddess.onTransformStart(player);
 
-                    // 更新缓存
-                    Neptunia.updatePlayerCache(uuid, cap.getAbility(), type, startTime);
+                    // 更新缓存（死亡→重生恢复用）
+                    Neptunia.updatePlayerCache(player.getUUID(), cap.getAbility(), type, cap.getDiskGen(), startTime);
 
                     Neptunia.CHANNEL.send(
                             PacketDistributor.PLAYER.with(() -> player),
-                            new GoddessAbilitySyncPacket(cap.getAbility(), startTime, type)
+                            new GoddessAbilitySyncPacket(cap.getAbility(), startTime, type, cap.getDiskGen())
                     );
                     player.sendSystemMessage(Component.literal("变身！"));
 
@@ -108,13 +111,16 @@ public class TransformRequestPacket {
                         applyLegacyBoostRemoval(player);
                     }
                     cap.setTransformStartTime(0);
+                    // 移除变身飞行（创造/旁观模式玩家不受影响）
+                    GoddessFlightHandler.revokeFlight(player);
                     System.out.println("✅ [服务端] 玩家 " + player.getName().getString() + " 解除变身");
 
-                    Neptunia.updatePlayerCache(uuid, cap.getAbility(), type, 0);
+                    // 更新缓存（死亡→重生恢复用）
+                    Neptunia.updatePlayerCache(player.getUUID(), cap.getAbility(), type, cap.getDiskGen(), 0);
 
                     Neptunia.CHANNEL.send(
                             PacketDistributor.PLAYER.with(() -> player),
-                            new GoddessAbilitySyncPacket(cap.getAbility(), 0, type)
+                            new GoddessAbilitySyncPacket(cap.getAbility(), 0, type, cap.getDiskGen())
                     );
                     player.sendSystemMessage(Component.literal("解除变身！"));
                 }
@@ -125,6 +131,10 @@ public class TransformRequestPacket {
 
     /**
      * 应用或移除女神的属性加成。
+     * <p>
+     * 实际倍率按磁盘世代缩放：最终倍率 = 1 + (注册值 − 1) × 世代系数
+     * （注册值为 Gen5 满额数值，见 {@link GoddessDiskGen}）。
+     * <p>
      * 注意：应用前会先无条件清除玩家身上所有女神加成，
      * 防止更换女神/异常流程导致多个女神的加成叠加。
      */
@@ -135,10 +145,16 @@ public class TransformRequestPacket {
         removeAllGoddessBoosts(player);
         if (!apply) return;
 
+        // 读取玩家所用磁盘世代（默认 Gen5 = 满额，兼容旧数据与指令赋予）
+        float factor = player.getCapability(GoddessCapabilityProvider.GODDESS_CAPABILITY)
+                .map(cap -> cap.getDiskGen().getBoostFactor())
+                .orElse(GoddessDiskGen.GEN5.getBoostFactor());
+
         UUID boostUUID = goddess.getBoostUUID();
         for (Map.Entry<Attribute, Double> entry : goddess.getAttributeMultipliers().entrySet()) {
             Attribute attr = entry.getKey();
-            double multiplier = entry.getValue();
+            double base = entry.getValue();
+            double multiplier = 1.0 + (base - 1.0) * factor;
             AttributeInstance instance = player.getAttribute(attr);
             if (instance == null) continue;
 
@@ -152,17 +168,19 @@ public class TransformRequestPacket {
 
     /**
      * 移除玩家身上所有女神的加成修饰器（无论来自哪位女神）。
-     * 遍历注册中心里所有女神涉及的属性，按修饰器名称前缀匹配清除。
+     * 先收集所有女神涉及的属性（去重），再按修饰器名称前缀匹配清除。
      */
     private static void removeAllGoddessBoosts(ServerPlayer player) {
+        java.util.Set<Attribute> attributes = new java.util.HashSet<>();
         for (Goddess registered : GoddessRegistry.getInstance().getAllGoddesses()) {
-            for (Attribute attr : registered.getAttributeMultipliers().keySet()) {
-                AttributeInstance instance = player.getAttribute(attr);
-                if (instance == null) continue;
-                for (AttributeModifier modifier : new ArrayList<>(instance.getModifiers())) {
-                    if (modifier.getName().startsWith("goddess_boost_")) {
-                        instance.removeModifier(modifier);
-                    }
+            attributes.addAll(registered.getAttributeMultipliers().keySet());
+        }
+        for (Attribute attr : attributes) {
+            AttributeInstance instance = player.getAttribute(attr);
+            if (instance == null) continue;
+            for (AttributeModifier modifier : new ArrayList<>(instance.getModifiers())) {
+                if (modifier.getName().startsWith("goddess_boost_")) {
+                    instance.removeModifier(modifier);
                 }
             }
         }

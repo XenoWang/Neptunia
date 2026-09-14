@@ -1,0 +1,26 @@
+{
+  "type": "miner_dimension_neptunia:goddess_disk",
+  "category": "misc",
+  "pattern": [
+    " L ",
+    "CDC",
+    " P "
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:dragon_breath"
+    },
+    "C": {
+      "item": "minecraft:chorus_fruit"
+    },
+    "P": {
+      "item": "minecraft:popped_chorus_fruit"
+    },
+    "D": {
+      "item": "miner_dimension_neptunia:engrave_unit_mk4"
+    }
+  },
+  "result": {
+    "item": "miner_dimension_neptunia:goddess_disk_gen4"
+  }
+}

@@ -2,17 +2,16 @@ package com.MinerDimensionNeptunia.NeptuniaMod.client;
 
 import com.MinerDimensionNeptunia.NeptuniaMod.Neptunia;
 import com.MinerDimensionNeptunia.NeptuniaMod.client.gui.GoddessHudRenderer;
-import com.MinerDimensionNeptunia.NeptuniaMod.goddess.Goddess;
-import com.MinerDimensionNeptunia.NeptuniaMod.goddess.GoddessRegistry;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
+import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessDiskGen;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.event.RenderGuiEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -22,9 +21,8 @@ public class ClientEvents {
     private static boolean cachedGoddessAbility = false;
     private static long cachedTransformStartTime = 0;
     private static GoddessType cachedGoddessType = GoddessType.NONE;
+    private static GoddessDiskGen cachedGoddessGen = GoddessDiskGen.GEN5;
     private static boolean isLocallyTransformed = false;
-
-    private static final int TRANSFORM_DURATION = 180;
 
     public static void setGoddessAbility(boolean value) {
         cachedGoddessAbility = value;
@@ -33,11 +31,15 @@ public class ClientEvents {
     public static void setTransformStartTime(long time) {
         cachedTransformStartTime = time;
         isLocallyTransformed = (time > 0);
-        GoddessHudRenderer.updateState(cachedGoddessType, time);
+        GoddessHudRenderer.updateState(cachedGoddessType, cachedGoddessGen, time);
     }
 
     public static void setGoddessType(GoddessType type) {
         cachedGoddessType = type;
+    }
+
+    public static void setGoddessGen(GoddessDiskGen gen) {
+        cachedGoddessGen = gen;
     }
 
     @SubscribeEvent
@@ -45,6 +47,7 @@ public class ClientEvents {
         cachedGoddessAbility = false;
         cachedTransformStartTime = 0;
         cachedGoddessType = GoddessType.NONE;
+        cachedGoddessGen = GoddessDiskGen.GEN5;
         isLocallyTransformed = false;
         GoddessHudRenderer.resetState();
     }
@@ -80,17 +83,23 @@ public class ClientEvents {
         }
     }
 
+    /** 客户端变身倒计时归零 → 通知服务端解除变身（每 tick 一次，而非渲染事件里判断） */
     @SubscribeEvent
-    public static void onRenderGui(RenderGuiOverlayEvent.Post event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
         if (isLocallyTransformed && getRemainingSeconds() <= 0) {
             Neptunia.CHANNEL.sendToServer(new TransformRequestPacket(false));
             isLocallyTransformed = false;
             cachedTransformStartTime = 0;
             GoddessHudRenderer.resetState();
-            return;
         }
+    }
 
-        // ⭐ 委托给 HUD 渲染器
+    /** RenderGuiEvent 每帧只触发一次（不像覆盖层事件那样每层都触发） */
+    @SubscribeEvent
+    public static void onRenderGui(RenderGuiEvent.Post event) {
         GoddessHudRenderer.render(event.getGuiGraphics(), event.getPartialTick());
     }
 
@@ -98,11 +107,6 @@ public class ClientEvents {
         if (cachedTransformStartTime <= 0)
             return 0;
         long elapsed = (System.currentTimeMillis() - cachedTransformStartTime) / 1000;
-        return Math.max(0, TRANSFORM_DURATION - (int) elapsed);
-    }
-
-    // 在 ClientEvents 类中添加：
-    public static boolean hasGoddessAbility() {
-        return cachedGoddessAbility;
+        return Math.max(0, cachedGoddessGen.getTransformDurationSeconds() - (int) elapsed);
     }
 }

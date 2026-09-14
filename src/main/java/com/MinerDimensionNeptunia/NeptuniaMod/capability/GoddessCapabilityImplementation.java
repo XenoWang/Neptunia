@@ -1,5 +1,6 @@
 package com.MinerDimensionNeptunia.NeptuniaMod.capability;
 
+import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessDiskGen;
 import com.MinerDimensionNeptunia.NeptuniaMod.util.GoddessType;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -13,6 +14,7 @@ public class GoddessCapabilityImplementation implements GoddessCapability, ICapa
     private boolean ability = false;
     private long transformStartTime = 0;
     private GoddessType goddessType = GoddessType.NONE;
+    private GoddessDiskGen diskGen = GoddessDiskGen.GEN5;
 
     @Override
     public boolean getAbility() {
@@ -45,11 +47,22 @@ public class GoddessCapabilityImplementation implements GoddessCapability, ICapa
     }
 
     @Override
+    public GoddessDiskGen getDiskGen() {
+        return diskGen;
+    }
+
+    @Override
+    public void setDiskGen(GoddessDiskGen gen) {
+        this.diskGen = gen;
+    }
+
+    @Override
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("goddess_ability", ability);
         tag.putLong("transform_start_time", transformStartTime);
         tag.putString("goddess_type", goddessType.name());
+        tag.putString("disk_gen", diskGen.name());
         return tag;
     }
 
@@ -58,6 +71,7 @@ public class GoddessCapabilityImplementation implements GoddessCapability, ICapa
         ability = nbt.getBoolean("goddess_ability");
         transformStartTime = nbt.getLong("transform_start_time");
         goddessType = GoddessType.fromName(nbt.getString("goddess_type"));
+        diskGen = GoddessDiskGen.fromName(nbt.getString("disk_gen"));
     }
 
     private final LazyOptional<GoddessCapability> holder = LazyOptional.of(() -> this);
