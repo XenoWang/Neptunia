@@ -1,9 +1,37 @@
 {
-    "prototype": {
-        "main": "#8B5CF6",
-        "secondary": "#A78BFA",
-        "border": "#6D28D9",
-        "text": "#FFFFFF",
-        "background": "#1E1B4B"
-    }
+  "prototype": {
+    "main": "#C97A84",
+    "secondary": "#B9BEC5",
+    "border": "#75434B",
+    "text": "#FFF8F8",
+    "background": "#20242A"
+  },
+  "purple_heart": {
+    "main": "#8E73D7",
+    "secondary": "#C2AAFA",
+    "border": "#251B3D",
+    "text": "#F3EEFF",
+    "background": "#211936"
+  },
+  "black_heart": {
+    "main": "#252A3C",
+    "secondary": "#AAB4DF",
+    "border": "#0C101B",
+    "text": "#EEF2FF",
+    "background": "#141826"
+  },
+  "white_heart": {
+    "main": "#9FDCF5",
+    "secondary": "#F7FDFF",
+    "border": "#5C91BE",
+    "text": "#F8FDFF",
+    "background": "#183044"
+  },
+  "green_heart": {
+    "main": "#62D1AD",
+    "secondary": "#B5F3D3",
+    "border": "#1B675A",
+    "text": "#ECFFF6",
+    "background": "#123B36"
+  }
 }
