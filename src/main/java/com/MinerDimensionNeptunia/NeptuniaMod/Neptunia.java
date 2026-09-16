@@ -10,6 +10,9 @@ import com.MinerDimensionNeptunia.NeptuniaMod.item.ingredient.EngraveUnitItem;
 import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessDiskItem;
 import com.MinerDimensionNeptunia.NeptuniaMod.item.usable.GoddessFlightHandler;
 import com.MinerDimensionNeptunia.NeptuniaMod.item.weapon.GoddessWeaponItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.weapon.GoddessGunItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.item.weapon.GoddessStaffItem;
+import com.MinerDimensionNeptunia.NeptuniaMod.entity.GoddessProjectile;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessAbilitySyncPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.GoddessTypeSelectPacket;
 import com.MinerDimensionNeptunia.NeptuniaMod.network.TransformRequestPacket;
@@ -23,6 +26,8 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Tiers;
@@ -64,6 +69,14 @@ public class Neptunia {
                         PROTOCOL_VERSION::equals);
 
         public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
+        public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
+        public static final RegistryObject<EntityType<GoddessProjectile>> GODDESS_PROJECTILE = ENTITIES.register(
+                        "goddess_projectile", () -> EntityType.Builder.<GoddessProjectile>of(GoddessProjectile::new, MobCategory.MISC)
+                                        .sized(0.25F, 0.25F).clientTrackingRange(8).updateInterval(1)
+                                        .build(MODID + ":goddess_projectile"));
+        // 仅用于弹射物渲染，不加入创造标签页，也不作为弹药消耗。
+        public static final RegistryObject<Item> BULLET = ITEMS.register("bullet", () -> new Item(new Item.Properties()));
+        public static final RegistryObject<Item> ICE_CONE = ITEMS.register("ice_cone", () -> new Item(new Item.Properties()));
 
         // ---- 女神磁盘：Gen1~Gen5（世代决定属性强弱与获取维度，使用后不消耗） ----
         // Gen1 主世界宝箱（低概率）、Gen2 下界宝箱、Gen4 末地城宝箱；
@@ -96,7 +109,7 @@ public class Neptunia {
         public static final java.util.List<RegistryObject<Item>> ENGRAVE_UNITS = java.util.List.of(
                         ENGRAVE_UNIT_MK1, ENGRAVE_UNIT_MK2, ENGRAVE_UNIT_MK3, ENGRAVE_UNIT_MK4, ENGRAVE_UNIT_MK5);
 
-        // ---- 女神武器：5 位女神 × 6 阶 ----
+        // ---- 女神武器：9 位女神 × 6 阶 ----
         // 伤害阶梯（总伤害）：7 / 8 / 12 / 18 / 27 / 54
         // 攻速按武器类型差异化（刺剑最快、战锤最慢），完整数值表见 tools/weapon_tiers.csv
         // 耐久为伪耐久条：不会损坏，随时间与击杀恢复（见 GoddessWeaponEvents）
@@ -135,6 +148,35 @@ public class Neptunia {
         public static final RegistryObject<Item> VERT_SPEAR_TIER5 = registerWeapon("vert_spear_tier5", GoddessType.GREEN_HEART, 23, -2.8F);
         public static final RegistryObject<Item> VERT_SPEAR_TIER6 = registerWeapon("vert_spear_tier6", GoddessType.GREEN_HEART, 50, -2.8F);
 
+        // 四姐妹：光剑沿用近战阶梯；步枪与冰法下调单发伤害，保留射程与减速收益。
+        public static final RegistryObject<Item> NEPGEAR_SWORD_TIER1 = registerWeapon("nepgear_sword_tier1", GoddessType.PURPLE_SISTER, 3, -2.2F);
+        public static final RegistryObject<Item> NEPGEAR_SWORD_TIER2 = registerWeapon("nepgear_sword_tier2", GoddessType.PURPLE_SISTER, 4, -2.2F);
+        public static final RegistryObject<Item> NEPGEAR_SWORD_TIER3 = registerWeapon("nepgear_sword_tier3", GoddessType.PURPLE_SISTER, 8, -2.3F);
+        public static final RegistryObject<Item> NEPGEAR_SWORD_TIER4 = registerWeapon("nepgear_sword_tier4", GoddessType.PURPLE_SISTER, 14, -2.3F);
+        public static final RegistryObject<Item> NEPGEAR_SWORD_TIER5 = registerWeapon("nepgear_sword_tier5", GoddessType.PURPLE_SISTER, 23, -2.4F);
+        public static final RegistryObject<Item> NEPGEAR_SWORD_TIER6 = registerWeapon("nepgear_sword_tier6", GoddessType.PURPLE_SISTER, 50, -2.4F);
+
+        public static final RegistryObject<Item> UNI_RIFLE_TIER1 = registerGun("uni_rifle_tier1", GoddessType.BLACK_SISTER, 5, -2.0F);
+        public static final RegistryObject<Item> UNI_RIFLE_TIER2 = registerGun("uni_rifle_tier2", GoddessType.BLACK_SISTER, 6, -2.0F);
+        public static final RegistryObject<Item> UNI_RIFLE_TIER3 = registerGun("uni_rifle_tier3", GoddessType.BLACK_SISTER, 9, -2.1F);
+        public static final RegistryObject<Item> UNI_RIFLE_TIER4 = registerGun("uni_rifle_tier4", GoddessType.BLACK_SISTER, 13, -2.1F);
+        public static final RegistryObject<Item> UNI_RIFLE_TIER5 = registerGun("uni_rifle_tier5", GoddessType.BLACK_SISTER, 20, -2.2F);
+        public static final RegistryObject<Item> UNI_RIFLE_TIER6 = registerGun("uni_rifle_tier6", GoddessType.BLACK_SISTER, 40, -2.2F);
+
+        public static final RegistryObject<Item> ROM_STAFF_TIER1 = registerStaff("rom_staff_tier1", GoddessType.WHITE_SISTER_ROM, 5, -2.8F);
+        public static final RegistryObject<Item> ROM_STAFF_TIER2 = registerStaff("rom_staff_tier2", GoddessType.WHITE_SISTER_ROM, 6, -2.8F);
+        public static final RegistryObject<Item> ROM_STAFF_TIER3 = registerStaff("rom_staff_tier3", GoddessType.WHITE_SISTER_ROM, 9, -2.9F);
+        public static final RegistryObject<Item> ROM_STAFF_TIER4 = registerStaff("rom_staff_tier4", GoddessType.WHITE_SISTER_ROM, 13, -2.9F);
+        public static final RegistryObject<Item> ROM_STAFF_TIER5 = registerStaff("rom_staff_tier5", GoddessType.WHITE_SISTER_ROM, 20, -3.0F);
+        public static final RegistryObject<Item> ROM_STAFF_TIER6 = registerStaff("rom_staff_tier6", GoddessType.WHITE_SISTER_ROM, 40, -3.0F);
+
+        public static final RegistryObject<Item> RAM_STAFF_TIER1 = registerStaff("ram_staff_tier1", GoddessType.WHITE_SISTER_RAM, 5, -2.8F);
+        public static final RegistryObject<Item> RAM_STAFF_TIER2 = registerStaff("ram_staff_tier2", GoddessType.WHITE_SISTER_RAM, 6, -2.8F);
+        public static final RegistryObject<Item> RAM_STAFF_TIER3 = registerStaff("ram_staff_tier3", GoddessType.WHITE_SISTER_RAM, 9, -2.9F);
+        public static final RegistryObject<Item> RAM_STAFF_TIER4 = registerStaff("ram_staff_tier4", GoddessType.WHITE_SISTER_RAM, 13, -2.9F);
+        public static final RegistryObject<Item> RAM_STAFF_TIER5 = registerStaff("ram_staff_tier5", GoddessType.WHITE_SISTER_RAM, 20, -3.0F);
+        public static final RegistryObject<Item> RAM_STAFF_TIER6 = registerStaff("ram_staff_tier6", GoddessType.WHITE_SISTER_RAM, 40, -3.0F);
+
         /** 所有女神武器（创造标签页与 JEI 展示用） */
         public static final java.util.List<RegistryObject<Item>> ALL_GODDESS_WEAPONS = java.util.List.of(
                         PROTOTYPE_RAPIER_TIER1, PROTOTYPE_RAPIER_TIER2, PROTOTYPE_RAPIER_TIER3,
@@ -146,12 +188,26 @@ public class Neptunia {
                         BLANC_HAMMER_TIER1, BLANC_HAMMER_TIER2, BLANC_HAMMER_TIER3,
                         BLANC_HAMMER_TIER4, BLANC_HAMMER_TIER5, BLANC_HAMMER_TIER6,
                         VERT_SPEAR_TIER1, VERT_SPEAR_TIER2, VERT_SPEAR_TIER3,
-                        VERT_SPEAR_TIER4, VERT_SPEAR_TIER5, VERT_SPEAR_TIER6);
+                        VERT_SPEAR_TIER4, VERT_SPEAR_TIER5, VERT_SPEAR_TIER6,
+                        NEPGEAR_SWORD_TIER1, NEPGEAR_SWORD_TIER2, NEPGEAR_SWORD_TIER3, NEPGEAR_SWORD_TIER4, NEPGEAR_SWORD_TIER5, NEPGEAR_SWORD_TIER6,
+                        UNI_RIFLE_TIER1, UNI_RIFLE_TIER2, UNI_RIFLE_TIER3, UNI_RIFLE_TIER4, UNI_RIFLE_TIER5, UNI_RIFLE_TIER6,
+                        ROM_STAFF_TIER1, ROM_STAFF_TIER2, ROM_STAFF_TIER3, ROM_STAFF_TIER4, ROM_STAFF_TIER5, ROM_STAFF_TIER6,
+                        RAM_STAFF_TIER1, RAM_STAFF_TIER2, RAM_STAFF_TIER3, RAM_STAFF_TIER4, RAM_STAFF_TIER5, RAM_STAFF_TIER6);
 
         private static RegistryObject<Item> registerWeapon(String name, GoddessType type, int damageBonus, float speedModifier) {
                 return ITEMS.register(name,
                                 () -> new GoddessWeaponItem(type, Tiers.DIAMOND, damageBonus, speedModifier,
                                                 new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        }
+
+        private static RegistryObject<Item> registerGun(String name, GoddessType type, float damage, float speedModifier) {
+                return ITEMS.register(name, () -> new GoddessGunItem(type, damage, speedModifier,
+                                new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
+        }
+
+        private static RegistryObject<Item> registerStaff(String name, GoddessType type, float damage, float speedModifier) {
+                return ITEMS.register(name, () -> new GoddessStaffItem(type, damage, speedModifier,
+                                new Item.Properties().durability(GoddessWeaponItem.DURABILITY)));
         }
 
         // ---- 玩家数据缓存：死亡→重生期间保留女神化能力 ----
@@ -220,6 +276,7 @@ public class Neptunia {
                 IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
                 ITEMS.register(modEventBus);
+                ENTITIES.register(modEventBus);
                 ModCreativeTabs.register(modEventBus);      // 创造标签页（见 item 包）
                 ModRecipeSerializers.register(modEventBus); // 配方序列化器（见 recipe 包）
                 ModLootModifiers.register(modEventBus);     // 战利品修改器（见 loot 包）

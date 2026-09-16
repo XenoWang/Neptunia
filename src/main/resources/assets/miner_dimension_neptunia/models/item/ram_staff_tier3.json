@@ -1,0 +1,6 @@
+{
+  "parent": "miner_dimension_neptunia:item/ram_staff",
+  "textures": {
+    "body": "minecraft:block/gold_block"
+  }
+}

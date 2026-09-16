@@ -1,0 +1,6 @@
+{
+  "parent": "miner_dimension_neptunia:item/nepgear_sword",
+  "textures": {
+    "body": "minecraft:block/quartz_block_side"
+  }
+}

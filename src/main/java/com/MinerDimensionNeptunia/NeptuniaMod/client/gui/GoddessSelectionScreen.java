@@ -11,11 +11,13 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +59,8 @@ public class GoddessSelectionScreen extends Screen {
 
     /** 本次选择所用的女神磁盘世代（决定选定后的属性强弱） */
     private final GoddessDiskGen gen;
+    private int page;
+    private int pageCount = 1;
 
     public GoddessSelectionScreen(GoddessDiskGen gen) {
         super(Component.literal("选择女神"));
@@ -76,6 +80,15 @@ public class GoddessSelectionScreen extends Screen {
 
         int usableWidth = Math.max(1, this.width - PAGE_MARGIN * 2);
         int usableHeight = Math.max(1, this.height - TITLE_AREA - BUTTON_AREA);
+
+        // 八角色（开发者九角色）时分页，避免所有卡牌被压缩成不可读的小图。
+        int columns = Math.max(1, Math.min(MAX_CARDS_PER_ROW, (usableWidth + CARD_GAP) / (90 + CARD_GAP)));
+        int rowsPerPage = Math.max(1, (usableHeight + CARD_GAP) / (130 + CARD_GAP));
+        int pageSize = columns * rowsPerPage;
+        pageCount = Math.max(1, (goddesses.size() + pageSize - 1) / pageSize);
+        page = Math.min(page, pageCount - 1);
+        goddesses = new ArrayList<>(goddesses.subList(page * pageSize,
+                Math.min(goddesses.size(), (page + 1) * pageSize)));
 
         // ============================================================
         // 自适应布局：遍历所有可能的"每行张数"（最多 4 张），
@@ -137,12 +150,24 @@ public class GoddessSelectionScreen extends Screen {
                 .pos(this.width / 2 - 50, this.height - 30)
                 .size(100, 20)
                 .build());
+        if (pageCount > 1) {
+            Button previous = this.addRenderableWidget(Button.builder(Component.literal("<"), button -> {
+                page--;
+                rebuildWidgets();
+            }).pos(this.width / 2 - 80, this.height - 30).size(20, 20).build());
+            previous.active = page > 0;
+            Button next = this.addRenderableWidget(Button.builder(Component.literal(">"), button -> {
+                page++;
+                rebuildWidgets();
+            }).pos(this.width / 2 + 60, this.height - 30).size(20, 20).build());
+            next.active = page + 1 < pageCount;
+        }
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderBackground(graphics);
-        graphics.drawCenteredString(this.font, "请选择你的女神", this.width / 2, 10, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, "请选择你的女神  " + (page + 1) + "/" + pageCount, this.width / 2, 10, 0xFFFFFF);
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
@@ -161,6 +186,7 @@ public class GoddessSelectionScreen extends Screen {
             super(x, y, width, height, Component.literal(goddess.getDisplayName()));
             this.goddess = goddess;
             this.textScale = pickTextScale(width);
+            this.setTooltip(Tooltip.create(Component.literal(goddess.getDisplayName() + "\n" + goddess.getDescription())));
         }
 
         /** 按卡牌宽度选择文字缩放档位（4 档） */
@@ -233,8 +259,25 @@ public class GoddessSelectionScreen extends Screen {
         /** 在指定区域内等比缩放绘制立绘（保持宽高比并居中） */
         private void drawGoddessArt(GuiGraphics graphics, int x, int y, int w, int h) {
             ResourceLocation texture = goddess.getArtTexture();
-            if (texture == null || w <= 0 || h <= 0)
+            if (w <= 0 || h <= 0)
                 return;
+            if (texture == null) {
+                // 缺少立绘时展示已注册的初始武器，不引用不存在的纹理。
+                if (goddess.getStarterWeapon() != null) {
+                    int size = Math.min(32, Math.min(w, Math.max(16, h - 14)));
+                    graphics.pose().pushPose();
+                    graphics.pose().translate(x + (w - size) / 2.0F, y + Math.max(0, (h - size - 12) / 2.0F), 0);
+                    graphics.pose().scale(size / 16.0F, size / 16.0F, 1);
+                    graphics.renderItem(new ItemStack(goddess.getStarterWeapon()), 0, 0);
+                    graphics.pose().popPose();
+                }
+                if (h >= 26) {
+                    graphics.drawCenteredString(GoddessSelectionScreen.this.font,
+                            Component.translatable("gui.miner_dimension_neptunia.art_pending"),
+                            x + w / 2, y + h - 10, DESC_TEXT);
+                }
+                return;
+            }
             int texW = goddess.getArtTextureWidth();
             int texH = goddess.getArtTextureHeight();
             double scale = Math.min((double) w / texW, (double) h / texH);

@@ -27,6 +27,34 @@
     "text": "#F8FDFF",
     "background": "#183044"
   },
+  "purple_sister": {
+    "main": "#AA8AE8",
+    "secondary": "#DBC8FF",
+    "border": "#60418F",
+    "text": "#F7F0FF",
+    "background": "#2B2040"
+  },
+  "black_sister": {
+    "main": "#B34F68",
+    "secondary": "#E6A6BD",
+    "border": "#502A3E",
+    "text": "#FFF1F5",
+    "background": "#271D2B"
+  },
+  "white_sister_rom": {
+    "main": "#79BEED",
+    "secondary": "#D5F0FF",
+    "border": "#437DA8",
+    "text": "#F2FAFF",
+    "background": "#1C3449"
+  },
+  "white_sister_ram": {
+    "main": "#E597BE",
+    "secondary": "#FFE1F2",
+    "border": "#A75A85",
+    "text": "#FFF4FA",
+    "background": "#442438"
+  },
   "green_heart": {
     "main": "#62D1AD",
     "secondary": "#B5F3D3",

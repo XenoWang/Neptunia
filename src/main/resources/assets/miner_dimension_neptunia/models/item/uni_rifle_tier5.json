@@ -1,0 +1,6 @@
+{
+  "parent": "miner_dimension_neptunia:item/uni_rifle",
+  "textures": {
+    "body": "minecraft:block/netherite_block"
+  }
+}
