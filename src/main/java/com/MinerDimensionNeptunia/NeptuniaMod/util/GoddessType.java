@@ -6,7 +6,11 @@ public enum GoddessType {
     PURPLE_HEART,
     BLACK_HEART,
     WHITE_HEART,
-    GREEN_HEART;
+    GREEN_HEART,
+    PURPLE_SISTER,
+    BLACK_SISTER,
+    WHITE_SISTER_ROM,
+    WHITE_SISTER_RAM;
 
     public boolean isNone() {
         return this == NONE;
