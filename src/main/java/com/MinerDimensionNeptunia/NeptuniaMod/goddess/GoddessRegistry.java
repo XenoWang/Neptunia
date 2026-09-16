@@ -92,6 +92,44 @@ public class GoddessRegistry {
                 .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.1) // 1.1×1.1 ≈ 1.21
                 .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.5); // ⭐ 移速最高
         registerGoddess(greenHeart);
+
+        // Re;Birth2 四姐妹，倍率为 Gen5 满额值，沿用现有世代缩放。
+        // 立绘待补：保持 artTexture 为空，选择页显示初始武器占位。
+        registerGoddess(new Goddess(GoddessType.PURPLE_SISTER, "绀紫妹妹")
+                .setStarterWeapon(Neptunia.NEPGEAR_SWORD_TIER1)
+                .setDescription("Nepgear：均衡型光剑手，攻守兼备，擅长持续作战。")
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.35)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.30)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.25)
+                .addAttributeBoost(Attributes.ARMOR, 1.25)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.20));
+
+        registerGoddess(new Goddess(GoddessType.BLACK_SISTER, "圣黑妹妹")
+                .setStarterWeapon(Neptunia.UNI_RIFLE_TIER1)
+                .setDescription("Uni：敏捷型步枪手，以射速与机动性保持距离。")
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.30)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.40)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.35)
+                .addAttributeBoost(Attributes.ARMOR, 1.15)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.15));
+
+        registerGoddess(new Goddess(GoddessType.WHITE_SISTER_ROM, "群白妹妹·罗姆")
+                .setStarterWeapon(Neptunia.ROM_STAFF_TIER1)
+                .setDescription("Rom：防御型冰法师，冰锥减速，护甲与韧性更强。")
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.40)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 0.90)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.10)
+                .addAttributeBoost(Attributes.ARMOR, 1.45)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.35));
+
+        registerGoddess(new Goddess(GoddessType.WHITE_SISTER_RAM, "群白妹妹·拉姆")
+                .setStarterWeapon(Neptunia.RAM_STAFF_TIER1)
+                .setDescription("Ram：进攻型冰法师，以更强冰锥伤害压制敌人。")
+                .addAttributeBoost(Attributes.ATTACK_DAMAGE, 1.65)
+                .addAttributeBoost(Attributes.ATTACK_SPEED, 1.05)
+                .addAttributeBoost(Attributes.MOVEMENT_SPEED, 1.20)
+                .addAttributeBoost(Attributes.ARMOR, 1.25)
+                .addAttributeBoost(Attributes.ARMOR_TOUGHNESS, 1.20));
     }
 
     /**

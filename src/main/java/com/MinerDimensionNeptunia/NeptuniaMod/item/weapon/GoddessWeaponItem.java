@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  * 记录所属女神类型，便于后续升级配方与强化逻辑识别。
  * <p>
  * <b>伪耐久条</b>：耐久永远不会扣到最后 {@link #RESERVED_DURABILITY} 点，
- * 因此武器不会损坏；耐久通过每秒 +1、击杀生物 +20 恢复（见 {@link GoddessWeaponEvents}）。
+ * 因此武器不会损坏；耐久通过每秒 +10、击杀生物 +200 恢复（见 {@link GoddessWeaponEvents}）。
  */
 public class GoddessWeaponItem extends SwordItem {
     /** 武器耐久上限（与原版钻石武器一致） */

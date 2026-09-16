@@ -1,0 +1,6 @@
+{
+  "parent": "miner_dimension_neptunia:item/rom_staff",
+  "textures": {
+    "body": "minecraft:block/quartz_block_side"
+  }
+}

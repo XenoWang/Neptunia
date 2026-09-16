@@ -22,6 +22,9 @@ public class GoddessGunItem extends GoddessRangedWeaponItem {
     }
 
     @Override
+    protected float projectileDamage() { return damage; }
+
+    @Override
     protected float projectileSpeed() { return 3.5F; }
 
     @Override

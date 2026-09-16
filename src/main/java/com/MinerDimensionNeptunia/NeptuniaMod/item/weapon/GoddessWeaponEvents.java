@@ -11,8 +11,8 @@ import net.minecraftforge.fml.common.Mod;
 /**
  * 女神武器的伪耐久恢复逻辑：
  * <ul>
- *     <li>随时间恢复：每秒 +1 点耐久</li>
- *     <li>击杀任意生物：额外 +20 点耐久</li>
+ *     <li>随时间恢复：每秒 +10 点耐久</li>
+ *     <li>击杀任意生物：额外 +200 点耐久</li>
  * </ul>
  * 耐久永远不会扣到 0（见 {@link GoddessWeaponItem#damageItem}），因此武器不会损坏。
  * 恢复作用于玩家背包内（含副手）的所有女神武器。

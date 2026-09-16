@@ -11,6 +11,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
@@ -34,8 +35,12 @@ public class GoddessProjectile extends ThrowableItemProjectile {
         setOwner(owner);
         setPos(owner.getX(), owner.getEyeY() - 0.1, owner.getZ());
         setItem(new ItemStack(ice ? Neptunia.ICE_CONE.get() : Neptunia.BULLET.get()));
-        // 远程武器主手基础伤害为 1；完整应用玩家当前攻击属性（含女神世代加成）。
-        damage = baseDamage * (float) owner.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        // 在副本上加入弹射物基础伤害，再按原版顺序应用属性修饰器。
+        // 力量等固定加值只加一次，不能随武器阶级成倍放大，也不修改玩家属性。
+        AttributeInstance attack = new AttributeInstance(Attributes.ATTACK_DAMAGE, attribute -> {});
+        attack.replaceFrom(owner.getAttribute(Attributes.ATTACK_DAMAGE));
+        attack.setBaseValue(attack.getBaseValue() + baseDamage - 1.0);
+        damage = (float) attack.getValue();
     }
 
     private boolean isIce() { return getItem().is(Neptunia.ICE_CONE.get()); }
